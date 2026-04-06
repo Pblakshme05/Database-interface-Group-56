@@ -1,6 +1,6 @@
 <?php
-include 'connection.php';
-include 'functions.php'; // CRUD functions file
+include 'configdb.php';
+include 'functions.php';
 ?>
 
 <!DOCTYPE html>
@@ -13,6 +13,7 @@ include 'functions.php'; // CRUD functions file
 <h2>Add Student</h2>
 
 <form method="post" action="">
+
 <label for="name">Student Name:</label>
 <input type="text" name="name" id="name" required><br><br>
 
@@ -34,7 +35,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $result = createStudent($name, $programme);
 
         if ($result) {
-            echo "Student added successfully.";
+            echo "Student info added successfully.";
         } else {
             echo "Failed to add student.";
         }
