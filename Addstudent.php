@@ -1,6 +1,6 @@
 <?php
 include 'configdb.php';
-include 'functions.php';
+include 'function.php';
 ?>
 
 <!DOCTYPE html>

@@ -1,10 +1,12 @@
 <?php
 include 'configdb.php';
+include 'function.php';
 
 function executeQuery($sql) {
     global $conn;
     return $conn->query($sql);
 }
+
 
 // JOIN multiple tables based on your ER diagram
 $sql = "
@@ -19,6 +21,19 @@ JOIN Assessor ON Internship.assessor_id = Assessor.assessor_id
 ";
 
 $result = executeQuery($sql);
+
+$sql = "SELECT * FROM Student";
+$result = $conn->query($sql);
+
+if ($result->num_rows > 0) {
+    while($row = $result->fetch_assoc()) {
+        echo "ID: " . $row["student_id"] .
+             " - Name: " . $row["student_name"] .
+             " - Programme: " . $row["programme"] . "<br>";
+    }
+} else {
+    echo "No students found.";
+}
 
 if ($result->num_rows > 0) {
     while($row = $result->fetch_assoc()) {
