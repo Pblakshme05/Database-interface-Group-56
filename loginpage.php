@@ -9,7 +9,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $email = $_POST['email'];
     $password = $_POST['password'];
 
-    // ONLY check ADMIN table
+    // ONLY check ADMIN table for now
     $sql = "SELECT * FROM Admin WHERE email='$email' AND password='$password'";
     $result = $conn->query($sql);
 

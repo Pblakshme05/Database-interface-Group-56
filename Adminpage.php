@@ -113,7 +113,7 @@ body {
 <div class="container">
 
     <div class="card">
-        <a href="add_student.php">
+        <a href="Addstudent.php">
             <h3>Add Student</h3>
             <p>Register a new student</p>
         </a>
