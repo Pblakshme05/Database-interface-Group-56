@@ -2,39 +2,67 @@
 include 'Configdb.php';
 include 'Function.php';
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
+// Handle POST requests for updating
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update'])) {
 
     $id = $_POST['id'];
     $name = $_POST['name'];
     $programme = $_POST['programme'];
 
-    // Validate input
     if (empty($name) || empty($programme)) {
         echo "Name and programme are required.";
     } else {
-
         $result = updateStudent($id, $name, $programme);
-
         if ($result) {
             echo "Student updated successfully.";
-            header("Refresh:2; url=Managestudents.php");
+            header("Refresh:3; url=ManageStudents.php");
             exit;
         } else {
-            echo "Failed to update student.";
+            echo "Failed to update student: " . $conn->error;
         }
     }
 
+// Handle GET requests for deletion
+} elseif (isset($_GET['delete'])) {
+    $deleteId = $_GET['delete'];
+    $sql = "DELETE FROM Student WHERE student_id = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("i", $deleteId);
+    if ($stmt->execute()) {
+        echo "Student deleted successfully.";
+        header("Refresh:2; url=ManageStudents.php");
+        exit;
+    } else {
+        echo "Failed to delete student: " . $conn->error;
+    }
+
+// Handle GET requests for editing
 } else {
 
-    // Check if ID exists
+    // If no ID is provided, show list of students
     if (!isset($_GET['id'])) {
-        echo "No student ID provided.";
+        $sql = "SELECT * FROM Student";
+        $result = $conn->query($sql);
+
+        if ($result->num_rows > 0) {
+            echo "<h2>Select a student (Edit/Delete) :</h2>";
+            echo "<ul>";
+            while ($row = $result->fetch_assoc()) {
+                echo "<li>" . htmlspecialchars($row['student_name']) . 
+                     " (" . htmlspecialchars($row['programme']) . ") - " .
+                     "<a href='?id=" . $row['student_id'] . "'>Edit</a> | " .
+                     "<a href='?delete=" . $row['student_id'] . "' onclick=\"return confirm('Are you sure you want to delete this student?');\">Delete</a>" .
+                     "</li>";
+            }
+            echo "</ul>";
+        } else {
+            echo "No students found.";
+        }
         exit;
     }
 
+    // Get student data for editing
     $id = $_GET['id'];
-
-    // ✅ Get student data
     $sql = "SELECT * FROM Student WHERE student_id = ?";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("i", $id);
@@ -70,7 +98,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <label for="programme">Programme:</label>
 <input type="text" name="programme" id="programme" value="<?php echo $programme; ?>" required><br><br>
 
-<input type="submit" name="submit" value="Update Student">
+<input type="submit" name="update" value="Update Student">
 </form>
 
 </body>
