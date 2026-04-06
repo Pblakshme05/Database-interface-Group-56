@@ -120,21 +120,21 @@ body {
     </div>
 
     <div class="card">
-        <a href="manage_students.php">
+        <a href="Managestudents.php">
             <h3>Manage Students</h3>
             <p>Edit, delete, view students</p>
         </a>
     </div>
 
     <div class="card">
-        <a href="add_assessor.php">
+        <a href="Addassessor.php">
             <h3>Add Assessor</h3>
             <p>Register new assessor</p>
         </a>
     </div>
 
     <div class="card">
-        <a href="manage_assessors.php">
+        <a href="Manageassessors.php">
             <h3>Manage Assessors</h3>
             <p>Edit or delete assessors</p>
         </a>
