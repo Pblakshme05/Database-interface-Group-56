@@ -37,7 +37,7 @@ body {
 
 /* WELCOME CARD */
 .welcome-card {
-    background: linear-gradient(135deg, #6a11cb, #2575fc);
+    background: linear-gradient(135deg, #3311cbd1, #2575fc);
     color: white;
     margin: 30px;
     padding: 30px;
