@@ -53,7 +53,7 @@ function updateStudent($id, $name, $programme) {
 }
 //---------------------------------------------------------------------------------------------------------------------
 function createAssessor($name, $email, $hashedPassword) {
-    $sql = "INSERT INTO Assessor (name, email, password) VALUES (?, ?, ?)";
+    $sql = "INSERT INTO Assessor (assessor_name, email, password) VALUES (?, ?, ?)";
     return executePreparedStatement($sql, [$name, $email, $hashedPassword]);
 }
 

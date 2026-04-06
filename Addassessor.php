@@ -1,47 +1,49 @@
 <?php
 include 'configdb.php';
 include 'function.php';
+
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    $name = trim($_POST['name'] ?? '');
+    $email = trim($_POST['email'] ?? '');
+    $password = trim($_POST['password'] ?? '');
+
+    if (empty($name) || empty($email) || empty($password)) {
+        echo "All fields are required.";
+    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        echo "Invalid email format.";
+    } else {
+        $result = createAssessor($name, $email, $password);
+
+        if ($result) {
+            echo "Assessor added successfully.";
+        } else {
+            echo "Failed to add assessor.";
+        }
+    }
+}
 ?>
 
 <!DOCTYPE html>
 <html>
 <head>
-<title>Add Student</title>
+    <title>Add Assessor</title>
 </head>
 <body>
 
-<h2>Add Student</h2>
+<h2>Add Assessor</h2>
 
 <form method="post" action="">
+    <label for="name">Assessor Name:</label>
+    <input type="text" name="name" id="name" required><br><br>
 
-<label for="name">Student Name:</label>
-<input type="text" name="name" id="name" required><br><br>
+    <label for="email">Email:</label>
+    <input type="email" name="email" id="email" required><br><br>
 
-<label for="programme">Programme:</label>
-<input type="text" name="programme" id="programme" required><br><br>
+    <label for="password">Password:</label>
+    <input type="password" name="password" id="password" required><br><br>
 
-<input type="submit" name="submit" value="Add Student">
+    <input type="submit" value="Add Assessor">
 </form>
-
-<?php
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-
-    $name = $_POST['name'];
-    $programme = $_POST['programme'];
-
-    if (empty($name) || empty($programme)) {
-        echo "Name and programme are required.";
-    } else {
-        $result = createStudent($name, $programme);
-
-        if ($result) {
-            echo "Student info added successfully.";
-        } else {
-            echo "Failed to add student.";
-        }
-    }
-}
-?>
 
 </body>
 </html>
