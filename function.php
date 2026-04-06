@@ -51,4 +51,15 @@ function updateStudent($id, $name, $programme) {
     $sql = "UPDATE Student SET student_name = ?, programme = ? WHERE student_id = ?";
     return executePreparedStatement($sql, [$name, $programme, $id]);
 }
+//---------------------------------------------------------------------------------------------------------------------
+function createAssessor($name, $email, $hashedPassword) {
+    $sql = "INSERT INTO Assessor (name, email, password) VALUES (?, ?, ?)";
+    return executePreparedStatement($sql, [$name, $email, $hashedPassword]);
+}
+
+function getAssessors() {
+    $sql = "SELECT * FROM Assessor";
+    return executePreparedStatement($sql, []);
+}
 ?>
+
