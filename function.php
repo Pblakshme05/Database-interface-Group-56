@@ -61,5 +61,15 @@ function getAssessors() {
     $sql = "SELECT * FROM Assessor";
     return executePreparedStatement($sql, []);
 }
+
+function updateAssessor($id, $name, $email) {
+    $sql = "UPDATE Assessor SET assessor_name = ?, email = ? WHERE assessor_id = ?";
+    return executePreparedStatement($sql, [$name, $email, $id], "ssi");
+}
+
+function deleteAssessor($id) {
+    $sql = "DELETE FROM Assessor WHERE assessor_id = ?";
+    return executePreparedStatement($sql, [$id], "i");
+}
 ?>
 

@@ -45,4 +45,15 @@ if ($result->num_rows > 0) {
 } else {
     echo "No results found.";
 }
+
+// assessor info
+if ($result->num_rows > 0) {
+    while($row = $result->fetch_assoc()) {
+        echo "Assessor ID: " . $row["assessor_id"] .
+             " - Assessor Name: " . $row["assessor_name"] .
+             " - Email: " . $row["email"] . "<br>";
+    }
+} else {
+    echo "No results found.";
+}
 ?>
