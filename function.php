@@ -21,7 +21,7 @@ function executePreparedStatement($sql, $params) {
     return $result;
 }
 
-# 🔥 LOGIN FUNCTION
+#  LOGIN FUNCTION
 function adminLogin($email, $password) {
     $sql = "SELECT * FROM Admin WHERE email = ? AND password = ?";
     $params = [$email, $password];
