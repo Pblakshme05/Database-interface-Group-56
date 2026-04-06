@@ -25,6 +25,8 @@ $result = executeQuery($sql);
 $sql = "SELECT * FROM Student";
 $result = $conn->query($sql);
 
+echo "<h4> Student Data: <h4/>";
+
 if ($result->num_rows > 0) {
     while($row = $result->fetch_assoc()) {
         echo "ID: " . $row["student_id"] .
@@ -35,22 +37,15 @@ if ($result->num_rows > 0) {
     echo "No students found.";
 }
 
-if ($result->num_rows > 0) {
-    while($row = $result->fetch_assoc()) {
-        echo "Internship ID: " . $row["internship_id"] .
-             " - Student: " . $row["student_name"] .
-             " - Company: " . $row["company_name"] .
-             " - Assessor: " . $row["assessor_name"] . "<br>";
-    }
-} else {
-    echo "No results found.";
-}
-
 // assessor info
+$sql = "SELECT * FROM Assessor";
+$result = $conn->query($sql);
+
+echo "<h4> Assessor Data: <h4/>";
 if ($result->num_rows > 0) {
     while($row = $result->fetch_assoc()) {
-        echo "Assessor ID: " . $row["assessor_id"] .
-             " - Assessor Name: " . $row["assessor_name"] .
+        echo "ID: " . $row["assessor_id"] .
+             " - Name: " . $row["assessor_name"] .
              " - Email: " . $row["email"] . "<br>";
     }
 } else {

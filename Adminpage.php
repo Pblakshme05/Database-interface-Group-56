@@ -134,7 +134,7 @@ body {
     </div>
 
     <div class="card">
-        <a href="Manageassessors.php">
+        <a href="Manage_Assessors.php">
             <h3>Manage Assessors</h3>
             <p>Edit or delete assessors</p>
         </a>

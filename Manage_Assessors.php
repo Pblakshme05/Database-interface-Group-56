@@ -22,6 +22,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update'])) {
         }
     }
 
+// Handle GET requests for deletion
+} elseif (isset($_GET['delete'])) {
+    $deleteId = $_GET['delete'];
+    $sql = "DELETE FROM Assessor WHERE assessor_id = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("i", $deleteId);
+    if ($stmt->execute()) {
+        echo "Assessor deleted successfully.";
+        header("Refresh:2; url=ManageAssessors.php");
+        exit;
+    } else {
+        echo "Failed to delete assessor: " . $conn->error;
+    }
+
 // Handle GET requests for editing
 } else {
 
@@ -31,12 +45,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update'])) {
         $result = $conn->query($sql);
 
         if ($result->num_rows > 0) {
-            echo "<h2>Select an assessor (Edit) :</h2>";
+            echo "<h2>Select an assessor (Edit/Delete) :</h2>";
             echo "<ul>";
             while ($row = $result->fetch_assoc()) {
                 echo "<li>" . htmlspecialchars($row['assessor_name']) . 
                      " (" . htmlspecialchars($row['email']) . ") - " .
-                     "<a href='?id=" . $row['assessor_id'] . "'>Edit</a>" .
+                     "<a href='?id=" . $row['assessor_id'] . "'>Edit</a> | " .
+                     "<a href='?delete=" . $row['assessor_id'] . "' onclick=\"return confirm('Are you sure you want to delete this assessor?');\">Delete</a>" .
                      "</li>";
             }
             echo "</ul>";
