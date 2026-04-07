@@ -141,7 +141,7 @@ body {
     </div>
 
     <div class="card">
-        <a href="assign_internship.php">
+        <a href="Assign_internship.php">
             <h3>Assign Internship</h3>
             <p>Assign student to assessor</p>
         </a>
