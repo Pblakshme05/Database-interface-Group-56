@@ -1,41 +1,53 @@
 <?php
-// assign_internship.php
-include 'configdb.php'; // Your DB connection
+include 'configdb.php';
+include 'function.php';
 
-// Handle form submission
-if (isset($_POST['assign'])) {
-    $student_id = $_POST['student_id'];
-    $assessor_ids = $_POST['assessor_ids']; // array of selected assessors
+$message = "";
 
-    if (count($assessor_ids) != 2) {
-        $message = "Please select exactly 2 assessors.";
-    } else {
-        // Delete old assignments for this student
-        mysqli_query($conn, "DELETE FROM student_assessors WHERE student_id = $student_id");
+// ================= FETCH STUDENTS AND ASSESSORS =================
+$students_result = getStudents();
+$assessors_result = getAssessors();
 
-        // Insert new assignments
-        foreach ($assessor_ids as $assessor_id) {
-            mysqli_query($conn, "INSERT INTO student_assessors (student_id, assessor_id) VALUES ($student_id, $assessor_id)");
-        }
-        $message = "Assessors assigned successfully!";
+// ================= HANDLE SELECTED STUDENT =================
+$selected_student_id = $_POST['student_id'] ?? "";
+$student_name = "";
+
+// Get student name if selected
+if ($selected_student_id) {
+    $sql_student = "SELECT student_name FROM Student WHERE student_id = ?";
+    $res_student = executePreparedStatement($sql_student, [$selected_student_id]);
+    if ($res_student instanceof mysqli_result && $res_student->num_rows > 0) {
+        $student_name = $res_student->fetch_assoc()['student_name'];
     }
 }
 
-// Fetch all students
-$students = mysqli_query($conn, "SELECT * FROM students");
-
-// Fetch all assessors
-$assessors = mysqli_query($conn, "SELECT * FROM assessors");
-
-// Get selected student ID (for showing current assignments)
-$selected_student_id = isset($_POST['student_id']) ? $_POST['student_id'] : 0;
-
-// Fetch current assignments
+// ================= FETCH CURRENT ASSIGNMENTS =================
 $current_assessors = [];
-if ($selected_student_id) {
-    $result = mysqli_query($conn, "SELECT assessor_id FROM student_assessors WHERE student_id = $selected_student_id");
-    while ($row = mysqli_fetch_assoc($result)) {
-        $current_assessors[] = $row['assessor_id'];
+if ($student_name) {
+    $res_current = getStudentAssessors($student_name);
+    if ($res_current instanceof mysqli_result) {
+        while ($row = $res_current->fetch_assoc()) {
+            $current_assessors[] = $row['assessor_name'];
+        }
+    }
+}
+
+// ================= ASSIGN OR MODIFY =================
+if ($student_name && isset($_POST['save_assessors'])) {
+    $assessor_ids = $_POST['assessor_ids'] ?? [];
+
+    if (!assignAssessorsToStudent($student_name, $assessor_ids)) {
+        $message = "Please select exactly 2 assessors.";
+    } else {
+        $message = "Assessors updated successfully!";
+        // Refresh current assignments
+        $current_assessors = [];
+        $res_current = getStudentAssessors($student_name);
+        if ($res_current instanceof mysqli_result) {
+            while ($row = $res_current->fetch_assoc()) {
+                $current_assessors[] = $row['assessor_name'];
+            }
+        }
     }
 }
 ?>
@@ -43,58 +55,74 @@ if ($selected_student_id) {
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Assign Assessors to Student</title>
+    <title>Assign / Modify Assessors</title>
 </head>
 <body>
-<h2>Assign Assessors to Student</h2>
 
-<?php if(isset($message)) echo "<p style='color:red;'>$message</p>"; ?>
+<h2>Assign / Modify Assessors for Student</h2>
 
-<form method="post" action="">
-    <label for="student">Select Student:</label>
-    <select name="student_id" id="student" onchange="this.form.submit()">
+<?php if ($message) echo "<p style='color:green;'>$message</p>"; ?>
+
+<form method="post">
+
+    <!-- STUDENT SELECTION -->
+    <label>Select Student:</label>
+    <select name="student_id" required onchange="this.form.submit()">
         <option value="">-- Select Student --</option>
         <?php
-        while($row = mysqli_fetch_assoc($students)) {
-            $selected = ($row['id'] == $selected_student_id) ? "selected" : "";
-            echo "<option value='".$row['id']."' $selected>".$row['name']."</option>";
+        if ($students_result instanceof mysqli_result) {
+            while ($row = $students_result->fetch_assoc()) {
+                $selected = ($row['student_id'] == $selected_student_id) ? "selected" : "";
+                echo "<option value='{$row['student_id']}' $selected>{$row['student_name']}</option>";
+            }
         }
         ?>
     </select>
+
     <br><br>
 
-    <label for="assessors">Select Assessors (2):</label>
-    <select name="assessor_ids[]" id="assessors" multiple size="5" required>
+    <?php if ($student_name): ?>
+        <!-- CURRENT ASSIGNMENTS -->
+        <h3>Current Assessors:</h3>
+        <?php if (count($current_assessors) > 0): ?>
+            <ul>
+                <?php foreach ($current_assessors as $name) echo "<li>$name</li>"; ?>
+            </ul>
+            <p>Select 2 assessors below and click ASSIGN to update.</p>
+        <?php else: ?>
+            <p>No assessors assigned yet. Select 2 below and click ASSIGN.</p>
+        <?php endif; ?>
+
+        <!-- ASSIGN / MODIFY ASSESSORS -->
+        <h3>Assign / Modify Assessors:</h3>
         <?php
-        // Reset pointer for multiple selection after student selection
-        mysqli_data_seek($assessors, 0);
-        while($row = mysqli_fetch_assoc($assessors)) {
-            $selected = in_array($row['id'], $current_assessors) ? "selected" : "";
-            echo "<option value='".$row['id']."' $selected>".$row['name']."</option>";
+        if ($assessors_result instanceof mysqli_result) {
+            $assessors_result->data_seek(0);
+            while ($row = $assessors_result->fetch_assoc()) {
+                echo "<input type='checkbox' name='assessor_ids[]' value='{$row['assessor_id']}'> {$row['assessor_name']}<br>";
+            }
         }
         ?>
-    </select>
-    <br><br>
 
-    <input type="submit" name="assign" value="Assign">
+        <br>
+        <input type="submit" name="save_assessors" value="Assign / Modify">
+
+    <?php endif; ?>
+
 </form>
 
-<?php
-// Optional: display current assignments table
-if ($selected_student_id) {
-    echo "<h3>Current Assessors:</h3>";
-    if(count($current_assessors) > 0){
-        echo "<ul>";
-        foreach($current_assessors as $assessor_id){
-            $a = mysqli_query($conn, "SELECT name FROM assessors WHERE id = $assessor_id");
-            $name = mysqli_fetch_assoc($a)['name'];
-            echo "<li>$name</li>";
+<!-- LIMIT CHECK JS -->
+<script>
+document.querySelectorAll('input[name="assessor_ids[]"]').forEach(cb => {
+    cb.addEventListener('change', function () {
+        let checked = document.querySelectorAll('input[name="assessor_ids[]"]:checked');
+        if (checked.length > 2) {
+            alert("You can select only 2 assessors.");
+            this.checked = false;
         }
-        echo "</ul>";
-    } else {
-        echo "<p>No assessors assigned yet.</p>";
-    }
-}
-?>
+    });
+});
+</script>
+
 </body>
 </html>
