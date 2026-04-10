@@ -2,7 +2,7 @@
 session_start();
 
 if (!isset($_SESSION['assessor_id'])) {
-    header("Location: loginpage.php");
+    header("Location: ../loginpage.php"); // ← adjust this path
     exit();
 }
 ?>
