@@ -9,11 +9,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $email = $_POST['email'];
     $password = $_POST['password'];
 
-    // ONLY check ADMIN table for now
+    // Admin Login Check
     $sql = "SELECT * FROM Admin WHERE email='$email' AND password='$password'";
     $result = $conn->query($sql);
 
-    if ($result->num_rows == 1) {
+    if ($result && $result->num_rows == 1) {
 
         $row = $result->fetch_assoc();
 
@@ -22,10 +22,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         header("Location: AdminPage/Adminpage.php");
         exit();
-
-    } else {
-        $error = " Invalid Username/Password Login!";
     }
+
+    //Assessor Login Check
+    $sql2 = "SELECT * FROM Assessor WHERE email='$email' AND password='$password'";
+    $result2 = $conn->query($sql2);
+
+    if ($result2 && $result2->num_rows == 1) {
+
+        $row = $result2->fetch_assoc();
+
+        $_SESSION['assessor_id'] = $row['assessor_id'];
+        $_SESSION['assessor_name'] = $row['assessor_name'];
+
+        header("Location: Assessor/AssessorPage.php");
+        exit();
+    }
+
+    $error = "Invalid email or password!";
 }
 ?>
 
