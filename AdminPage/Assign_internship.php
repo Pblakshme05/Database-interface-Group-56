@@ -1,6 +1,7 @@
 <?php
-include 'configdb.php';
-include 'function.php';
+include '../configdb.php';
+include '../function.php';
+
 
 $message = "";
 

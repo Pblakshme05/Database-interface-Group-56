@@ -20,7 +20,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $_SESSION['admin_id'] = $row['admin_id'];
         $_SESSION['admin_name'] = $row['admin_name'];
 
-        header("Location: Adminpage.php");
+        header("Location: AdminPage/Adminpage.php");
         exit();
 
     } else {

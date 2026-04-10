@@ -1,6 +1,7 @@
 <?php
-include 'Configdb.php';
-include 'Function.php';
+include '../configdb.php';
+include '../function.php';
+
 
 // Handle POST requests for updating
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update'])) {

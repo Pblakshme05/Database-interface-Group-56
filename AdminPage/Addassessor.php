@@ -1,6 +1,7 @@
 <?php
-include 'configdb.php';
-include 'function.php';
+include '../configdb.php';
+include '../function.php';
+?>
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $name = trim($_POST['name'] ?? '');

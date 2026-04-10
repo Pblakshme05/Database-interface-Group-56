@@ -1,6 +1,6 @@
 <?php
-include 'configdb.php';
-include 'function.php';
+include '../configdb.php';
+include '../function.php';
 
 $sql = "SELECT 
             s.student_id,
