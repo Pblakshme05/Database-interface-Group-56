@@ -35,7 +35,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $_SESSION['assessor_id'] = $row['assessor_id'];
         $_SESSION['assessor_name'] = $row['assessor_name'];
 
-        header("Location: Assessor/AssessorPage.php");
+        header("Location: AssessorPage/AssessorPage.php");
         exit();
     }
 
