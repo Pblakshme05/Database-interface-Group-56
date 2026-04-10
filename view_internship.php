@@ -5,7 +5,7 @@ include 'function.php';
 // Correct table names (SINGULAR)
 $sql = "SELECT 
             s.student_id,
-            s.name,
+            s.student_name,
             s.programme,
             a.name AS assessor_name
         FROM student s
@@ -76,7 +76,7 @@ if ($result && $result->num_rows > 0) {
     while($row = $result->fetch_assoc()) {
         echo "<tr>
                 <td>{$row['student_id']}</td>
-                <td>{$row['name']}</td>
+                <td>{$row['student_name']}</td>
                 <td>{$row['programme']}</td>
                 <td>" . (!empty($row['assessor_name']) ? $row['assessor_name'] : 'Not Assigned') . "</td>
                 <td>
