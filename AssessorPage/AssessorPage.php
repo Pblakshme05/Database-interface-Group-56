@@ -2,7 +2,7 @@
 session_start();
 
 if (!isset($_SESSION['assessor_id'])) {
-    header("Location: login.php");
+    header("Location: loginpage.php");
     exit();
 }
 ?>
