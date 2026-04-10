@@ -120,7 +120,7 @@ body {
     </div>
 
     <div class="card">
-        <a href="Managestudents.php">
+        <a href="Manage_students.php">
             <h3>Manage Students</h3>
             <p>Edit, delete, view students</p>
         </a>
