@@ -148,7 +148,7 @@ body {
     </div>
 
     <div class="card">
-        <a href="view_internships.php">
+        <a href="view_internship.php">
             <h3>View All Internships</h3>
             <p>See all internship records</p>
         </a>
