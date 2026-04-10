@@ -2,14 +2,15 @@
 include 'configdb.php';
 include 'function.php';
 
+// Correct table names (SINGULAR)
 $sql = "SELECT 
             s.student_id,
             s.name,
             s.programme,
             a.name AS assessor_name
-        FROM students s
-        LEFT JOIN internships i ON s.student_id = i.student_id
-        LEFT JOIN assessors a ON i.assessor_id = a.assessor_id";
+        FROM student s
+        LEFT JOIN internship i ON s.student_id = i.student_id
+        LEFT JOIN assessor a ON i.assessor_id = a.assessor_id";
 
 $result = $conn->query($sql);
 ?>
@@ -31,6 +32,7 @@ $result = $conn->query($sql);
             width: 85%;
             margin: auto;
             background: white;
+            box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
         }
         th, td {
             border: 1px solid #ddd;
@@ -70,7 +72,7 @@ $result = $conn->query($sql);
     </tr>
 
 <?php
-if ($result->num_rows > 0) {
+if ($result && $result->num_rows > 0) {
     while($row = $result->fetch_assoc()) {
         echo "<tr>
                 <td>{$row['student_id']}</td>

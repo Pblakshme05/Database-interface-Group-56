@@ -149,7 +149,7 @@ body {
 
     <div class="card">
         <a href="view_internship.php">
-            <h3>View All Internships</h3>
+            <h3>View All Internship</h3>
             <p>See all internship records</p>
         </a>
     </div>
