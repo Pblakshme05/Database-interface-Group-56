@@ -2,16 +2,16 @@
 session_start();
 include '../configdb.php';
 include '../function.php';
- 
-// Auth guard — redirect if assessor not logged in
+
+// Auth guard
 if (!isset($_SESSION['assessor_id']) || !isset($_SESSION['assessor_name'])) {
     header("Location: login.php");
     exit();
 }
- 
+
 $assessor_name = $_SESSION['assessor_name'];
- 
-// Fetch only students assigned to the logged-in assessor
+
+// ✅ USING student_name (your current DB structure)
 $stmt = $conn->prepare("
     SELECT 
         s.student_id,
@@ -22,11 +22,12 @@ $stmt = $conn->prepare("
     WHERE sa.assessor_name = ?
     ORDER BY s.student_name ASC
 ");
+
 $stmt->bind_param("s", $assessor_name);
 $stmt->execute();
 $result = $stmt->get_result();
 ?>
- 
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -60,9 +61,9 @@ $result = $stmt->get_result();
     </style>
 </head>
 <body>
- 
+
 <h2>My Assigned Students</h2>
- 
+
 <table>
     <tr>
         <th>Student ID</th>
@@ -70,7 +71,7 @@ $result = $stmt->get_result();
         <th>Programme</th>
         <th>Action</th>
     </tr>
- 
+
 <?php
 if ($result && $result->num_rows > 0) {
     while ($row = $result->fetch_assoc()) {
@@ -88,11 +89,12 @@ if ($result && $result->num_rows > 0) {
 } else {
     echo "<tr><td colspan='4'>No students assigned to you yet.</td></tr>";
 }
- 
+
 $stmt->close();
+$conn->close();
 ?>
- 
+
 </table>
- 
+
 </body>
 </html>
