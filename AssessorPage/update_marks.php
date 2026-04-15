@@ -24,11 +24,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $row = $stmt->get_result()->fetch_assoc();
 
     if (!$row) {
-        $error = "No internship record found for this student. Please contact the admin.";
+        $error = "No internship record found for this student.";
     } else {
         $internship_id = $row['internship_id'];
 
-        // Check if this assessor already assessed this student
+        // Get existing assessment
         $stmt = $conn->prepare("
             SELECT assessment_id FROM Assessment 
             WHERE internship_id = ? AND assessor_id = ?
@@ -37,87 +37,105 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $stmt->execute();
         $existing = $stmt->get_result()->fetch_assoc();
 
-        if ($existing) {
-            $error = "You have already assessed this student. Use Update Marks to edit.";
+        if (!$existing) {
+            $error = "No existing assessment found. Please use Enter Marks instead.";
         } else {
-            // Fetch criteria for weightage calculation
+            $assessment_id = $existing['assessment_id'];
+
+            // Fetch criteria
             $criteria_res = $conn->query("SELECT criteria_id, weightage FROM Assessment_criteria");
             $criteria_map = [];
             while ($c = $criteria_res->fetch_assoc()) {
                 $criteria_map[$c['criteria_id']] = $c['weightage'];
             }
 
-            // Calculate weighted score
+            // Recalculate weighted score
             $weighted_total = 0;
             foreach ($criteria_map as $cid => $weight) {
                 $mark = floatval($_POST['mark_' . $cid] ?? 0);
                 $weighted_total += ($mark * $weight) / 100;
             }
 
-            // Insert Assessment row
+            // Update Assessment
             $stmt = $conn->prepare("
-                INSERT INTO Assessment (internship_id, assessor_id, comments, final_score)
-                VALUES (?, ?, ?, ?)
+                UPDATE Assessment SET comments = ?, final_score = ?
+                WHERE assessment_id = ?
             ");
-            $stmt->bind_param("iisd", $internship_id, $assessor_id, $comments, $weighted_total);
+            $stmt->bind_param("sdi", $comments, $weighted_total, $assessment_id);
             $stmt->execute();
-            $assessment_id = $stmt->insert_id;
 
-            // Insert individual marks
+            // Update individual marks
             $stmt = $conn->prepare("
-                INSERT INTO Assessment_marks (assessment_id, criteria_id, mark)
-                VALUES (?, ?, ?)
+                UPDATE Assessment_marks SET mark = ?
+                WHERE assessment_id = ? AND criteria_id = ?
             ");
             foreach ($criteria_map as $cid => $weight) {
                 $mark = floatval($_POST['mark_' . $cid] ?? 0);
-                $stmt->bind_param("iid", $assessment_id, $cid, $mark);
+                $stmt->bind_param("dii", $mark, $assessment_id, $cid);
                 $stmt->execute();
             }
 
-            $success = "Marks submitted successfully!";
+            $success = "Marks updated successfully!";
         }
     }
 }
 
-// Fetch assigned students using LEFT JOIN so students without internship still show
+// Fetch only ASSESSED students for this assessor
 $students_query = $conn->prepare("
     SELECT s.student_id, s.student_name, s.programme,
            i.internship_id,
-           CASE 
-               WHEN i.internship_id IS NULL THEN 0
-               ELSE (SELECT COUNT(*) FROM Assessment a 
-                     WHERE a.internship_id = i.internship_id 
-                       AND a.assessor_id = ?)
-           END AS already_assessed
+           (SELECT COUNT(*) FROM Assessment a 
+            WHERE a.internship_id = i.internship_id 
+              AND a.assessor_id = ?) AS already_assessed
     FROM student_assessors sa
     JOIN Student s ON sa.student_name = s.student_name
     LEFT JOIN Internship i ON i.student_id = s.student_id
     WHERE sa.assessor_name = ?
+    HAVING already_assessed > 0
     ORDER BY s.student_name
 ");
 $students_query->bind_param("is", $assessor_id, $assessor_name);
 $students_query->execute();
 $students_result = $students_query->get_result();
 
-// Fetch criteria for the form
+// Fetch criteria
 $criteria_result = $conn->query("SELECT * FROM Assessment_criteria ORDER BY criteria_id");
 $criteria_list   = $criteria_result->fetch_all(MYSQLI_ASSOC);
 
-// Selected student (from GET or POST)
+// Selected student
 $selected_id = intval($_GET['student_id'] ?? $_POST['student_id'] ?? 0);
 $selected_student = null;
+$existing_marks = [];
+$existing_comments = '';
+
 if ($selected_id) {
     $stmt = $conn->prepare("SELECT * FROM Student WHERE student_id = ?");
     $stmt->bind_param("i", $selected_id);
     $stmt->execute();
     $selected_student = $stmt->get_result()->fetch_assoc();
+
+    // Fetch existing marks
+    $stmt = $conn->prepare("
+        SELECT am.criteria_id, am.mark, a.comments
+        FROM Assessment a
+        JOIN Assessment_marks am ON a.assessment_id = am.assessment_id
+        JOIN Internship i ON a.internship_id = i.internship_id
+        WHERE i.student_id = ? AND a.assessor_id = ?
+    ");
+    $stmt->bind_param("ii", $selected_id, $assessor_id);
+    $stmt->execute();
+    $marks_result = $stmt->get_result();
+    while ($m = $marks_result->fetch_assoc()) {
+        $existing_marks[$m['criteria_id']] = $m['mark'];
+        $existing_comments = $m['comments'];
+    }
 }
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Enter Marks</title>
+<title>Update Marks</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: Arial, sans-serif; background: #f4f4f4; color: #333; }
@@ -135,10 +153,6 @@ if ($selected_id) {
   .stu-prog { font-size: 12px; color: #888; }
   .done-badge { margin-left: auto; font-size: 11px; background: #dcfce7;
     color: #166534; padding: 2px 8px; border-radius: 20px; white-space: nowrap; }
-  .pending-badge { margin-left: auto; font-size: 11px; background: #fef9c3;
-    color: #854d0e; padding: 2px 8px; border-radius: 20px; white-space: nowrap; }
-  .no-internship-badge { margin-left: auto; font-size: 11px; background: #fee2e2;
-    color: #991b1b; padding: 2px 8px; border-radius: 20px; white-space: nowrap; }
   .criteria-row { display: flex; align-items: center; gap: 12px; margin-bottom: 1.2rem; }
   .criteria-label { width: 150px; flex-shrink: 0; }
   .criteria-label strong { display: block; font-size: 14px; }
@@ -166,7 +180,7 @@ if ($selected_id) {
 <body>
 <div class="container">
   <a href="../AssessorPage/AssessorPage.php" class="back-link">← Back to Dashboard</a>
-  <h2>Enter Student Marks</h2>
+  <h2>Update Student Marks</h2>
 
   <?php if ($error): ?>
     <div class="alert alert-error"><?= htmlspecialchars($error) ?></div>
@@ -176,9 +190,9 @@ if ($selected_id) {
   <?php endif; ?>
 
   <?php if (!$selected_student || $success): ?>
-  <!-- STEP 1: Student list -->
+  <!-- STEP 1: Student list (only assessed) -->
   <div class="card">
-    <div class="section-title">Select a student to assess</div>
+    <div class="section-title">Select an assessed student to update</div>
     <div class="student-list">
       <?php
       $students_result->data_seek(0);
@@ -189,35 +203,26 @@ if ($selected_id) {
           fn($w) => strtoupper($w[0]),
           array_slice(explode(' ', trim($stu['student_name'])), 0, 2)
         ));
-        $has_internship = !is_null($stu['internship_id']);
       ?>
-      <?php $is_assessed = $stu['already_assessed'] > 0; ?>
-<a href="<?= (!$has_internship || $is_assessed) ? '#' : 'enter_marks.php?student_id=' . $stu['student_id'] ?>"
-   <?= (!$has_internship || $is_assessed) ? 'onclick="return false;" style="opacity:0.5;cursor:not-allowed;"' : '' ?>>
+      <a href="update_marks.php?student_id=<?= $stu['student_id'] ?>">
         <div class="avatar"><?= $initials ?></div>
         <div>
           <div class="stu-name"><?= htmlspecialchars($stu['student_name']) ?></div>
           <div class="stu-prog"><?= htmlspecialchars($stu['programme']) ?></div>
         </div>
-        <?php if (!$has_internship): ?>
-          <span class="no-internship-badge">No internship</span>
-        <?php elseif ($stu['already_assessed']): ?>
-          <span class="done-badge">Assessed</span>
-        <?php else: ?>
-          <span class="pending-badge">Pending</span>
-        <?php endif; ?>
+        <span class="done-badge">Assessed</span>
       </a>
       <?php endwhile; ?>
       <?php if ($count === 0): ?>
-        <div class="no-students">No students assigned to you yet.</div>
+        <div class="no-students">No assessed students yet.</div>
       <?php endif; ?>
     </div>
   </div>
 
   <?php else: ?>
-  <!-- STEP 2: Marks form -->
+  <!-- STEP 2: Pre-filled marks form -->
   <div class="card">
-    <div class="section-title">Assessing</div>
+    <div class="section-title">Updating marks for</div>
     <div style="display:flex;align-items:center;gap:12px;margin-bottom:1.5rem">
       <?php
         $initials = implode('', array_map(
@@ -235,7 +240,9 @@ if ($selected_id) {
     <form method="POST" id="marksForm">
       <input type="hidden" name="student_id" value="<?= $selected_id ?>">
 
-      <?php foreach ($criteria_list as $c): ?>
+      <?php foreach ($criteria_list as $c): 
+        $existing_mark = $existing_marks[$c['criteria_id']] ?? 0;
+      ?>
       <div class="criteria-row">
         <div class="criteria-label">
           <strong><?= htmlspecialchars($c['criteria_name']) ?></strong>
@@ -244,23 +251,24 @@ if ($selected_id) {
         <input type="range"
                name="mark_<?= $c['criteria_id'] ?>"
                id="slider_<?= $c['criteria_id'] ?>"
-               min="0" max="100" step="1" value="0"
+               min="0" max="100" step="1"
+               value="<?= $existing_mark ?>"
                oninput="updateSlider(<?= $c['criteria_id'] ?>, this.value)">
-        <div class="slider-val" id="val_<?= $c['criteria_id'] ?>">0%</div>
+        <div class="slider-val" id="val_<?= $c['criteria_id'] ?>"><?= $existing_mark ?>%</div>
       </div>
       <?php endforeach; ?>
 
       <hr style="border:none;border-top:1px solid #eee;margin:1rem 0">
 
       <div class="comments-label">Comments</div>
-      <textarea name="comments" placeholder="Optional notes about this student's performance..."></textarea>
+      <textarea name="comments"><?= htmlspecialchars($existing_comments) ?></textarea>
 
       <div class="submit-row">
         <div class="weighted-score">
           Weighted score: <strong id="weightedDisplay">0.00</strong>
           <span style="font-size:12px;color:#aaa"> / 100</span>
         </div>
-        <button type="submit" class="btn-submit">Submit Marks</button>
+        <button type="submit" class="btn-submit">Update Marks</button>
       </div>
     </form>
   </div>
