@@ -75,6 +75,96 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 $stmt->execute();
             }
 
+            // ── SYNC final_result ─────────────────────────────────────────────
+
+            // Get student name
+            $sname_stmt = $conn->prepare("SELECT student_name FROM Student WHERE student_id = ?");
+            $sname_stmt->bind_param("i", $student_id);
+            $sname_stmt->execute();
+            $sname_row = $sname_stmt->get_result()->fetch_assoc();
+            $sname = $sname_row['student_name'];
+
+            // Get the 2 assigned assessors for this student (ordered by assessor_id for consistency)
+            $sa_stmt = $conn->prepare("
+                SELECT a.assessor_id
+                FROM student_assessors sa
+                JOIN Assessor a ON sa.assessor_name = a.assessor_name
+                WHERE sa.student_name = ?
+                ORDER BY a.assessor_id ASC
+            ");
+            $sa_stmt->bind_param("s", $sname);
+            $sa_stmt->execute();
+            $assigned_assessors = $sa_stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
+            $a1_id = $assigned_assessors[0]['assessor_id'] ?? null;
+            $a2_id = $assigned_assessors[1]['assessor_id'] ?? null;
+
+            // Get all submitted marks for this internship
+            $marks_stmt = $conn->prepare("
+                SELECT assessor_id, final_score 
+                FROM Assessment 
+                WHERE internship_id = ?
+            ");
+            $marks_stmt->bind_param("i", $internship_id);
+            $marks_stmt->execute();
+            $all_marks = $marks_stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
+            // Map assessor_id => final_score
+            $markMap = [];
+            foreach ($all_marks as $m) {
+                $markMap[$m['assessor_id']] = $m['final_score'];
+            }
+
+            // Determine each assessor's mark (NULL if not yet submitted)
+            $a1_mark = isset($markMap[$a1_id]) ? floatval($markMap[$a1_id]) : null;
+            $a2_mark = ($a2_id && isset($markMap[$a2_id])) ? floatval($markMap[$a2_id]) : null;
+
+            // Calculate final mark
+            // - Both marked  → average of the two
+            // - Only 1 marked → that assessor's mark
+            // - Neither       → null
+            if ($a1_mark !== null && $a2_mark !== null) {
+                $final_avg = round(($a1_mark + $a2_mark) / 2, 2);
+            } elseif ($a1_mark !== null) {
+                $final_avg = round($a1_mark, 2);
+            } elseif ($a2_mark !== null) {
+                $final_avg = round($a2_mark, 2);
+            } else {
+                $final_avg = null;
+            }
+
+            // Check if final_result row exists
+            $chk = $conn->prepare("SELECT result_id FROM final_result WHERE student_name = ?");
+            $chk->bind_param("s", $sname);
+            $chk->execute();
+            $existing_result = $chk->get_result()->fetch_assoc();
+
+            if ($existing_result) {
+                // Update existing row
+                $upd = $conn->prepare("
+                    UPDATE final_result 
+                    SET assessor_1_id   = ?,
+                        assessor_1_mark = ?,
+                        assessor_2_id   = ?,
+                        assessor_2_mark = ?,
+                        final_avg_mark  = ?
+                    WHERE student_name = ?
+                ");
+                $upd->bind_param("ididds", $a1_id, $a1_mark, $a2_id, $a2_mark, $final_avg, $sname);
+                $upd->execute();
+            } else {
+                // Insert new row (edge case: row missing)
+                $ins = $conn->prepare("
+                    INSERT INTO final_result 
+                        (student_name, assessor_1_id, assessor_1_mark, assessor_2_id, assessor_2_mark, final_avg_mark)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                ");
+                $ins->bind_param("sididd", $sname, $a1_id, $a1_mark, $a2_id, $a2_mark, $final_avg);
+                $ins->execute();
+            }
+
+            // ─────────────────────────────────────────────────────────────────
+
             $success = "Marks updated successfully!";
         }
     }

@@ -91,82 +91,84 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $sname_row = $sname_stmt->get_result()->fetch_assoc();
             $sname = $sname_row['student_name'];
 
-            // Get all assessor marks for this internship
-            $stmt = $conn->prepare("
-                SELECT assessor_id, final_score FROM Assessment 
-                WHERE internship_id = ?
-                ORDER BY assessment_id ASC
+            // Get the 2 assigned assessors for this student (ordered by assessor_id)
+            // This ensures assessor_1 and assessor_2 are always in consistent order
+            $sa_stmt = $conn->prepare("
+                SELECT a.assessor_id
+                FROM student_assessors sa
+                JOIN Assessor a ON sa.assessor_name = a.assessor_name
+                WHERE sa.student_name = ?
+                ORDER BY a.assessor_id ASC
             ");
-            $stmt->bind_param("i", $internship_id);
-            $stmt->execute();
-            $all_marks = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+            $sa_stmt->bind_param("s", $sname);
+            $sa_stmt->execute();
+            $assigned_assessors = $sa_stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
-            $count_assessors = count($all_marks);
+            $a1_id = $assigned_assessors[0]['assessor_id'] ?? null;
+            $a2_id = $assigned_assessors[1]['assessor_id'] ?? null;
 
-            // Check if row already exists in final_result
+            // Get submitted marks from assessment table for this internship
+            $marks_stmt = $conn->prepare("
+                SELECT assessor_id, final_score 
+                FROM Assessment 
+                WHERE internship_id = ?
+            ");
+            $marks_stmt->bind_param("i", $internship_id);
+            $marks_stmt->execute();
+            $all_marks = $marks_stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
+            // Map assessor_id => final_score
+            $markMap = [];
+            foreach ($all_marks as $m) {
+                $markMap[$m['assessor_id']] = $m['final_score'];
+            }
+
+            // Determine each assessor's mark (NULL if not yet submitted)
+            $a1_mark = isset($markMap[$a1_id]) ? floatval($markMap[$a1_id]) : null;
+            $a2_mark = ($a2_id && isset($markMap[$a2_id])) ? floatval($markMap[$a2_id]) : null;
+
+            // Calculate final mark
+            // - Both marked  → average of the two
+            // - Only 1 marked → that assessor's mark
+            // - Neither marked → null
+            if ($a1_mark !== null && $a2_mark !== null) {
+                $final_avg = round(($a1_mark + $a2_mark) / 2, 2);
+            } elseif ($a1_mark !== null) {
+                $final_avg = round($a1_mark, 2);
+            } elseif ($a2_mark !== null) {
+                $final_avg = round($a2_mark, 2);
+            } else {
+                $final_avg = null;
+            }
+
+            // Check if a final_result row already exists for this student
             $chk = $conn->prepare("SELECT result_id FROM final_result WHERE student_name = ?");
             $chk->bind_param("s", $sname);
             $chk->execute();
             $existing_result = $chk->get_result()->fetch_assoc();
 
-            if ($count_assessors === 1) {
-                // Only 1 assessor marked — final avg = their mark
-                $only_assessor = $all_marks[0]['assessor_id'];
-                $only_mark     = $all_marks[0]['final_score'];
-                $final_avg     = round($only_mark, 2);
-
-                if ($existing_result) {
-                    $upd = $conn->prepare("
-                        UPDATE final_result 
-                        SET assessor_1_id = ?, assessor_1_mark = ?,
-                            assessor_2_id = NULL, assessor_2_mark = NULL,
-                            final_avg_mark = ?
-                        WHERE student_name = ?
-                    ");
-                    $upd->bind_param("idds", $only_assessor, $only_mark, $final_avg, $sname);
-                    $upd->execute();
-                } else {
-                    $ins = $conn->prepare("
-                        INSERT INTO final_result (student_name, assessor_1_id, assessor_1_mark, final_avg_mark)
-                        VALUES (?, ?, ?, ?)
-                    ");
-                    $ins->bind_param("sidd", $sname, $only_assessor, $only_mark, $final_avg);
-                    $ins->execute();
-                }
-
-            } elseif ($count_assessors === 2) {
-                // 2 assessors marked — final avg = (mark1 + mark2) / 2
-                $a1        = $all_marks[0];
-                $a2        = $all_marks[1];
-                $final_avg = round(($a1['final_score'] + $a2['final_score']) / 2, 2);
-
-                if ($existing_result) {
-                    $upd = $conn->prepare("
-                        UPDATE final_result 
-                        SET assessor_1_id = ?, assessor_1_mark = ?,
-                            assessor_2_id = ?, assessor_2_mark = ?,
-                            final_avg_mark = ?
-                        WHERE student_name = ?
-                    ");
-                    $upd->bind_param("ididds",
-                        $a1['assessor_id'], $a1['final_score'],
-                        $a2['assessor_id'], $a2['final_score'],
-                        $final_avg, $sname
-                    );
-                    $upd->execute();
-                } else {
-                    $ins = $conn->prepare("
-                        INSERT INTO final_result (student_name, assessor_1_id, assessor_1_mark, assessor_2_id, assessor_2_mark, final_avg_mark)
-                        VALUES (?, ?, ?, ?, ?, ?)
-                    ");
-                    $ins->bind_param("sididid",
-                        $sname,
-                        $a1['assessor_id'], $a1['final_score'],
-                        $a2['assessor_id'], $a2['final_score'],
-                        $final_avg
-                    );
-                    $ins->execute();
-                }
+            if ($existing_result) {
+                // Update existing row
+                $upd = $conn->prepare("
+                    UPDATE final_result 
+                    SET assessor_1_id   = ?,
+                        assessor_1_mark = ?,
+                        assessor_2_id   = ?,
+                        assessor_2_mark = ?,
+                        final_avg_mark  = ?
+                    WHERE student_name = ?
+                ");
+                $upd->bind_param("ididds", $a1_id, $a1_mark, $a2_id, $a2_mark, $final_avg, $sname);
+                $upd->execute();
+            } else {
+                // Insert new row
+                $ins = $conn->prepare("
+                    INSERT INTO final_result 
+                        (student_name, assessor_1_id, assessor_1_mark, assessor_2_id, assessor_2_mark, final_avg_mark)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                ");
+                $ins->bind_param("sididd", $sname, $a1_id, $a1_mark, $a2_id, $a2_mark, $final_avg);
+                $ins->execute();
             }
 
             // ────────────────────────────────────────────────────────────────
