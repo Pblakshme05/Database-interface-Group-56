@@ -8,11 +8,14 @@ if (!isset($_SESSION['assessor_id'])) {
 }
 
 $assessor_name = $_SESSION['assessor_name'];
-
-// Handle logout — destroys session and sends to Admin page
-if (isset($_GET['logout'])) {
-    session_destroy();
-    header("Location: ../AdminPage/AdminPage.php");
+if (isset($_SESSION['admin_id'])) {
+    $user_name = $_SESSION['admin_name'];
+    $dashboard = "../AdminPage/AdminPage.php";
+} elseif (isset($_SESSION['assessor_id'])) {
+    $user_name = $_SESSION['assessor_name'];
+    $dashboard = "../AssessorPage/AssessorPage.php";
+} else {
+    header("Location: ../login.php");
     exit();
 }
 
@@ -213,7 +216,7 @@ $results = $stmt->fetch_all(MYSQLI_ASSOC);
 
 <div class="topbar">
   <div class="topbar-left">
-    <a href="../AssessorPage/AssessorPage.php" class="back-btn">← Dashboard</a>
+    <a href="../AdminPage/AdminPage.php" class="back-btn">← Dashboard</a>
     <span class="page-title">Final Results</span>
   </div>
   <div class="topbar-right">
