@@ -9,8 +9,14 @@ if (!isset($_SESSION['assessor_id'])) {
 
 $assessor_name = $_SESSION['assessor_name'];
 
+// Handle logout — destroys session and sends to Admin page
+if (isset($_GET['logout'])) {
+    session_destroy();
+    header("Location: ../AdminPage/AdminPage.php");
+    exit();
+}
+
 // Fetch all students with their final_result data
-// Join to get assessor names too
 $stmt = $conn->query("
     SELECT 
         fr.result_id,
@@ -64,7 +70,6 @@ $results = $stmt->fetch_all(MYSQLI_ASSOC);
     min-height: 100vh;
   }
 
-  /* ── Header ── */
   .topbar {
     background: var(--card);
     border-bottom: 1px solid var(--border);
@@ -73,7 +78,9 @@ $results = $stmt->fetch_all(MYSQLI_ASSOC);
     display: flex; align-items: center; justify-content: space-between;
     position: sticky; top: 0; z-index: 10;
   }
-  .topbar-left { display: flex; align-items: center; gap: 1rem; }
+  .topbar-left  { display: flex; align-items: center; gap: 1rem; }
+  .topbar-right { display: flex; align-items: center; gap: 0.75rem; }
+
   .back-btn {
     display: flex; align-items: center; gap: 6px;
     font-size: 13px; color: var(--accent); text-decoration: none;
@@ -82,6 +89,16 @@ $results = $stmt->fetch_all(MYSQLI_ASSOC);
     transition: background 0.15s;
   }
   .back-btn:hover { background: #d8d8f0; }
+
+  .logout-btn {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 13px; color: #991b1b; text-decoration: none;
+    font-weight: 500; padding: 6px 14px; border-radius: 8px;
+    border: 1px solid #fecaca; background: #fee2e2;
+    transition: background 0.15s; cursor: pointer;
+  }
+  .logout-btn:hover { background: #fecaca; }
+
   .page-title {
     font-family: 'Syne', sans-serif;
     font-size: 15px; font-weight: 700; color: var(--ink);
@@ -93,7 +110,6 @@ $results = $stmt->fetch_all(MYSQLI_ASSOC);
     padding: 4px 12px; border-radius: 20px;
   }
 
-  /* ── Main ── */
   .main { max-width: 1100px; margin: 0 auto; padding: 2.5rem 1.5rem; }
 
   .section-header { margin-bottom: 2rem; }
@@ -103,7 +119,6 @@ $results = $stmt->fetch_all(MYSQLI_ASSOC);
   }
   .section-header p { font-size: 14px; color: var(--ink-soft); margin-top: 6px; }
 
-  /* ── Stats ── */
   .stats-bar { display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap; }
   .stat-chip {
     background: var(--card); border: 1px solid var(--border);
@@ -116,7 +131,6 @@ $results = $stmt->fetch_all(MYSQLI_ASSOC);
   }
   .stat-label { font-size: 12px; color: var(--ink-soft); line-height: 1.3; }
 
-  /* ── Table ── */
   .table-wrap {
     background: var(--card);
     border: 1px solid var(--border);
@@ -125,28 +139,18 @@ $results = $stmt->fetch_all(MYSQLI_ASSOC);
   }
 
   table { width: 100%; border-collapse: collapse; }
-
-  thead tr {
-    background: var(--accent);
-    color: #fff;
-  }
+  thead tr { background: var(--accent); color: #fff; }
   thead th {
     font-family: 'Syne', sans-serif;
     font-size: 11px; font-weight: 700;
     text-transform: uppercase; letter-spacing: 0.08em;
     padding: 14px 18px; text-align: left;
   }
-
-  tbody tr {
-    border-bottom: 1px solid var(--border);
-    transition: background 0.12s;
-  }
+  tbody tr { border-bottom: 1px solid var(--border); transition: background 0.12s; }
   tbody tr:last-child { border-bottom: none; }
   tbody tr:hover { background: #fafaf8; }
-
   td { padding: 14px 18px; font-size: 14px; vertical-align: middle; }
 
-  /* Student cell */
   .stu-cell { display: flex; align-items: center; gap: 12px; }
   .avatar {
     width: 36px; height: 36px; border-radius: 50%;
@@ -164,81 +168,35 @@ $results = $stmt->fetch_all(MYSQLI_ASSOC);
     display: inline-block; margin-top: 3px; font-weight: 500;
   }
 
-  /* Mark cell */
   .mark-cell { text-align: center; }
-  .mark-val {
-    font-family: 'Syne', sans-serif;
-    font-size: 15px; font-weight: 700; color: var(--accent);
-  }
+  .mark-val { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; color: var(--accent); }
   .mark-name { font-size: 11px; color: var(--ink-soft); margin-top: 2px; }
-  .mark-pending {
-    font-size: 13px; color: #bbb;
-    font-style: italic;
-  }
+  .mark-pending { font-size: 13px; color: #bbb; font-style: italic; }
 
-  /* Final mark cell */
   .final-cell { text-align: center; }
-  .final-score {
-    font-family: 'Syne', sans-serif;
-    font-size: 1.3rem; font-weight: 800;
-  }
+  .final-score { font-family: 'Syne', sans-serif; font-size: 1.3rem; font-weight: 800; }
   .final-pending {
-    font-size: 12px; color: var(--pending);
-    background: var(--pending-bg);
-    padding: 4px 10px; border-radius: 20px;
-    display: inline-block; font-weight: 500;
+    font-size: 12px; color: var(--pending); background: var(--pending-bg);
+    padding: 4px 10px; border-radius: 20px; display: inline-block; font-weight: 500;
   }
 
-  /* Grade badge */
-  .grade-badge {
-    font-size: 11px; font-weight: 700;
-    padding: 3px 9px; border-radius: 20px;
-    display: inline-block; margin-top: 4px;
-  }
+  .grade-badge { font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 20px; display: inline-block; margin-top: 4px; }
   .grade-A { background: var(--green-light); color: var(--green); }
   .grade-B { background: #e8f0fe; color: #1a56db; }
   .grade-C { background: var(--gold-light); color: #92660a; }
   .grade-D { background: #fff3e0; color: #b45309; }
   .grade-F { background: #fee2e2; color: #991b1b; }
 
-  /* status pill */
-  .status-both {
-    font-size: 11px; font-weight: 600;
-    background: var(--green-light); color: var(--green);
-    padding: 3px 9px; border-radius: 20px;
-  }
-  .status-one {
-    font-size: 11px; font-weight: 600;
-    background: var(--pending-bg); color: var(--pending);
-    padding: 3px 9px; border-radius: 20px;
-  }
-  .status-none {
-    font-size: 11px; font-weight: 600;
-    background: #fee2e2; color: #991b1b;
-    padding: 3px 9px; border-radius: 20px;
-  }
+  .status-both  { font-size: 11px; font-weight: 600; background: var(--green-light); color: var(--green); padding: 3px 9px; border-radius: 20px; }
+  .status-one   { font-size: 11px; font-weight: 600; background: var(--pending-bg); color: var(--pending); padding: 3px 9px; border-radius: 20px; }
+  .status-none  { font-size: 11px; font-weight: 600; background: #fee2e2; color: #991b1b; padding: 3px 9px; border-radius: 20px; }
 
-  /* Score mini-bar inside table */
-  .mini-bar-bg {
-    height: 4px; background: var(--border);
-    border-radius: 99px; overflow: hidden; margin-top: 4px; width: 80px;
-  }
-  .mini-bar-fill {
-    height: 100%; border-radius: 99px;
-    background: linear-gradient(90deg, var(--accent), #6c63ff);
-  }
+  .mini-bar-bg  { height: 4px; background: var(--border); border-radius: 99px; overflow: hidden; margin-top: 4px; width: 80px; }
+  .mini-bar-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--accent), #6c63ff); }
 
-  /* empty */
-  .empty-state {
-    text-align: center; padding: 4rem 2rem;
-    background: var(--card); border-radius: var(--radius);
-    border: 1px dashed var(--border);
-  }
+  .empty-state { text-align: center; padding: 4rem 2rem; background: var(--card); border-radius: var(--radius); border: 1px dashed var(--border); }
   .empty-icon { font-size: 2.5rem; margin-bottom: 1rem; }
-  .empty-state h3 {
-    font-family: 'Syne', sans-serif;
-    font-size: 1.1rem; font-weight: 700; margin-bottom: 6px;
-  }
+  .empty-state h3 { font-family: 'Syne', sans-serif; font-size: 1.1rem; font-weight: 700; margin-bottom: 6px; }
   .empty-state p { font-size: 13px; color: var(--ink-soft); }
 
   @media (max-width: 700px) {
@@ -258,7 +216,13 @@ $results = $stmt->fetch_all(MYSQLI_ASSOC);
     <a href="../AssessorPage/AssessorPage.php" class="back-btn">← Dashboard</a>
     <span class="page-title">Final Results</span>
   </div>
-  <span class="assessor-pill"><?= htmlspecialchars($assessor_name) ?></span>
+  <div class="topbar-right">
+    <span class="assessor-pill"><?= htmlspecialchars($assessor_name) ?></span>
+    <a href="?logout=1" class="logout-btn"
+       onclick="return confirm('Log out and return to the Admin page?')">
+      ↩ Logout
+    </a>
+  </div>
 </div>
 
 <div class="main">
@@ -318,7 +282,6 @@ $results = $stmt->fetch_all(MYSQLI_ASSOC);
           $a2_mark = $r['assessor_2_mark'];
           $final   = $r['final_avg_mark'];
 
-          // Status
           if ($a1_mark !== null && $a2_mark !== null) {
             $status_html = '<span class="status-both">✓ Complete</span>';
           } elseif ($a1_mark !== null || $a2_mark !== null) {
@@ -327,7 +290,7 @@ $results = $stmt->fetch_all(MYSQLI_ASSOC);
             $status_html = '<span class="status-none">✗ Not Started</span>';
           }
 
-          // Grade
+          $grade = ''; $gc = '';
           if ($final !== null) {
             $f = floatval($final);
             if ($f >= 80)      { $grade = 'A'; $gc = 'grade-A'; }
@@ -338,7 +301,6 @@ $results = $stmt->fetch_all(MYSQLI_ASSOC);
           }
         ?>
         <tr>
-          <!-- Student -->
           <td data-label="Student">
             <div class="stu-cell">
               <div class="avatar"><?= $initials ?></div>
@@ -350,7 +312,6 @@ $results = $stmt->fetch_all(MYSQLI_ASSOC);
             </div>
           </td>
 
-          <!-- Assessor 1 -->
           <td data-label="Assessor 1" class="mark-cell">
             <?php if ($a1_mark !== null): ?>
               <div class="mark-val"><?= number_format($a1_mark, 2) ?></div>
@@ -361,7 +322,6 @@ $results = $stmt->fetch_all(MYSQLI_ASSOC);
             <?php endif; ?>
           </td>
 
-          <!-- Assessor 2 -->
           <td data-label="Assessor 2" class="mark-cell">
             <?php if ($a2_mark !== null): ?>
               <div class="mark-val"><?= number_format($a2_mark, 2) ?></div>
@@ -372,12 +332,10 @@ $results = $stmt->fetch_all(MYSQLI_ASSOC);
             <?php endif; ?>
           </td>
 
-          <!-- Status -->
           <td data-label="Status" style="text-align:center">
             <?= $status_html ?>
           </td>
 
-          <!-- Final Mark -->
           <td data-label="Final Mark" class="final-cell">
             <?php if ($final !== null): ?>
               <div class="final-score" style="color:var(--accent)"><?= number_format($final, 2) ?></div>
