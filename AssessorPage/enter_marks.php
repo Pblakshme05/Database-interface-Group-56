@@ -54,14 +54,22 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 $weighted_total += ($mark * $weight) / 100;
             }
 
+            // Generate unique random 4-digit assessment_id
+            do {
+                $assessment_id = rand(1000, 9999);
+                $check = $conn->prepare("SELECT assessment_id FROM Assessment WHERE assessment_id = ?");
+                $check->bind_param("i", $assessment_id);
+                $check->execute();
+                $check->store_result();
+            } while ($check->num_rows > 0);
+
             // Insert Assessment row
             $stmt = $conn->prepare("
-                INSERT INTO Assessment (internship_id, assessor_id, comments, final_score)
-                VALUES (?, ?, ?, ?)
+                INSERT INTO Assessment (assessment_id, internship_id, assessor_id, comments, final_score)
+                VALUES (?, ?, ?, ?, ?)
             ");
-            $stmt->bind_param("iisd", $internship_id, $assessor_id, $comments, $weighted_total);
+            $stmt->bind_param("iiisd", $assessment_id, $internship_id, $assessor_id, $comments, $weighted_total);
             $stmt->execute();
-            $assessment_id = $stmt->insert_id;
 
             // Insert individual marks
             $stmt = $conn->prepare("
@@ -73,6 +81,95 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 $stmt->bind_param("iid", $assessment_id, $cid, $mark);
                 $stmt->execute();
             }
+
+            // ── UPDATE final_result ──────────────────────────────────────────
+
+            // Get student name
+            $sname_stmt = $conn->prepare("SELECT student_name FROM Student WHERE student_id = ?");
+            $sname_stmt->bind_param("i", $student_id);
+            $sname_stmt->execute();
+            $sname_row = $sname_stmt->get_result()->fetch_assoc();
+            $sname = $sname_row['student_name'];
+
+            // Get all assessor marks for this internship
+            $stmt = $conn->prepare("
+                SELECT assessor_id, final_score FROM Assessment 
+                WHERE internship_id = ?
+                ORDER BY assessment_id ASC
+            ");
+            $stmt->bind_param("i", $internship_id);
+            $stmt->execute();
+            $all_marks = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
+            $count_assessors = count($all_marks);
+
+            // Check if row already exists in final_result
+            $chk = $conn->prepare("SELECT result_id FROM final_result WHERE student_name = ?");
+            $chk->bind_param("s", $sname);
+            $chk->execute();
+            $existing_result = $chk->get_result()->fetch_assoc();
+
+            if ($count_assessors === 1) {
+                // Only 1 assessor marked — final avg = their mark
+                $only_assessor = $all_marks[0]['assessor_id'];
+                $only_mark     = $all_marks[0]['final_score'];
+                $final_avg     = round($only_mark, 2);
+
+                if ($existing_result) {
+                    $upd = $conn->prepare("
+                        UPDATE final_result 
+                        SET assessor_1_id = ?, assessor_1_mark = ?,
+                            assessor_2_id = NULL, assessor_2_mark = NULL,
+                            final_avg_mark = ?
+                        WHERE student_name = ?
+                    ");
+                    $upd->bind_param("idds", $only_assessor, $only_mark, $final_avg, $sname);
+                    $upd->execute();
+                } else {
+                    $ins = $conn->prepare("
+                        INSERT INTO final_result (student_name, assessor_1_id, assessor_1_mark, final_avg_mark)
+                        VALUES (?, ?, ?, ?)
+                    ");
+                    $ins->bind_param("sidd", $sname, $only_assessor, $only_mark, $final_avg);
+                    $ins->execute();
+                }
+
+            } elseif ($count_assessors === 2) {
+                // 2 assessors marked — final avg = (mark1 + mark2) / 2
+                $a1        = $all_marks[0];
+                $a2        = $all_marks[1];
+                $final_avg = round(($a1['final_score'] + $a2['final_score']) / 2, 2);
+
+                if ($existing_result) {
+                    $upd = $conn->prepare("
+                        UPDATE final_result 
+                        SET assessor_1_id = ?, assessor_1_mark = ?,
+                            assessor_2_id = ?, assessor_2_mark = ?,
+                            final_avg_mark = ?
+                        WHERE student_name = ?
+                    ");
+                    $upd->bind_param("ididds",
+                        $a1['assessor_id'], $a1['final_score'],
+                        $a2['assessor_id'], $a2['final_score'],
+                        $final_avg, $sname
+                    );
+                    $upd->execute();
+                } else {
+                    $ins = $conn->prepare("
+                        INSERT INTO final_result (student_name, assessor_1_id, assessor_1_mark, assessor_2_id, assessor_2_mark, final_avg_mark)
+                        VALUES (?, ?, ?, ?, ?, ?)
+                    ");
+                    $ins->bind_param("sididid",
+                        $sname,
+                        $a1['assessor_id'], $a1['final_score'],
+                        $a2['assessor_id'], $a2['final_score'],
+                        $final_avg
+                    );
+                    $ins->execute();
+                }
+            }
+
+            // ────────────────────────────────────────────────────────────────
 
             $success = "Marks submitted successfully!";
         }
@@ -192,8 +289,8 @@ if ($selected_id) {
         $has_internship = !is_null($stu['internship_id']);
       ?>
       <?php $is_assessed = $stu['already_assessed'] > 0; ?>
-<a href="<?= (!$has_internship || $is_assessed) ? '#' : 'enter_marks.php?student_id=' . $stu['student_id'] ?>"
-   <?= (!$has_internship || $is_assessed) ? 'onclick="return false;" style="opacity:0.5;cursor:not-allowed;"' : '' ?>>
+      <a href="<?= (!$has_internship || $is_assessed) ? '#' : 'enter_marks.php?student_id=' . $stu['student_id'] ?>"
+         <?= (!$has_internship || $is_assessed) ? 'onclick="return false;" style="opacity:0.5;cursor:not-allowed;"' : '' ?>>
         <div class="avatar"><?= $initials ?></div>
         <div>
           <div class="stu-name"><?= htmlspecialchars($stu['student_name']) ?></div>
