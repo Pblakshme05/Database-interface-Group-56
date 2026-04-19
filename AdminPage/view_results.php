@@ -2,21 +2,21 @@
 session_start();
 include '../configdb.php';
 
-if (!isset($_SESSION['assessor_id'])) {
+// Allow both admin and assessor to access this page
+if (!isset($_SESSION['admin_id']) && !isset($_SESSION['assessor_id'])) {
     header("Location: ../login.php");
     exit();
 }
 
-$assessor_name = $_SESSION['assessor_name'];
+// Set user name and dashboard link based on who is logged in
 if (isset($_SESSION['admin_id'])) {
-    $user_name = $_SESSION['admin_name'];
-    $dashboard = "../AdminPage/AdminPage.php";
-} elseif (isset($_SESSION['assessor_id'])) {
-    $user_name = $_SESSION['assessor_name'];
-    $dashboard = "../AssessorPage/AssessorPage.php";
+    $user_name     = $_SESSION['admin_name'];
+    $assessor_name = $_SESSION['admin_name'];
+    $dashboard     = "../AdminPage/AdminPage.php";
 } else {
-    header("Location: ../login.php");
-    exit();
+    $user_name     = $_SESSION['assessor_name'];
+    $assessor_name = $_SESSION['assessor_name'];
+    $dashboard     = "../AssessorPage/AssessorPage.php";
 }
 
 // Fetch all students with their final_result data
@@ -216,13 +216,13 @@ $results = $stmt->fetch_all(MYSQLI_ASSOC);
 
 <div class="topbar">
   <div class="topbar-left">
-    <a href="../AdminPage/AdminPage.php" class="back-btn">← Dashboard</a>
+    <a href="<?= htmlspecialchars($dashboard) ?>" class="back-btn">← Dashboard</a>
     <span class="page-title">Final Results</span>
   </div>
   <div class="topbar-right">
-    <span class="assessor-pill"><?= htmlspecialchars($assessor_name) ?></span>
+    <span class="assessor-pill"><?= htmlspecialchars($user_name) ?></span>
     <a href="?logout=1" class="logout-btn"
-       onclick="return confirm('Log out and return to the Admin page?')">
+       onclick="return confirm('Log out?')">
       ↩ Logout
     </a>
   </div>
