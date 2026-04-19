@@ -2,12 +2,13 @@
 session_start();
 include '../configdb.php';
 
+
 if (!isset($_SESSION['admin_id'])) {
-    header("Location: loginPage.php");
+    header("Location: ../loginpage.php");
     exit();
 }
 
-//  counts
+// Live counts
 $student_count  = $conn->query("SELECT COUNT(*) FROM Student")->fetch_row()[0] ?? 0;
 $assessor_count = $conn->query("SELECT COUNT(*) FROM Assessor")->fetch_row()[0] ?? 0;
 $result_count   = $conn->query("SELECT COUNT(*) FROM final_result WHERE final_avg_mark IS NOT NULL")->fetch_row()[0] ?? 0;
