@@ -17,7 +17,6 @@ $result_count   = $conn->query("SELECT COUNT(*) FROM final_result WHERE final_av
 <html>
 <head>
 <title>Admin Dashboard</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
     --navy:      #0d1f3c;
@@ -309,8 +308,7 @@ $result_count   = $conn->query("SELECT COUNT(*) FROM final_result WHERE final_av
     <div class="header-brand">
         <img src="../logo_img.png" alt="Logo">
         <div>
-            <span class="brand-text">Uni Portal</span>
-            <span class="brand-sub">Administration Portal</span>
+            <span class="brand-text">UNM Internship Portal</span>
         </div>
     </div>
     <a class="logout" href="logout.php">Logout</a>
