@@ -221,9 +221,6 @@ $results = $stmt->fetch_all(MYSQLI_ASSOC);
   </div>
   <div class="topbar-right">
     <span class="assessor-pill"><?= htmlspecialchars($user_name) ?></span>
-    <a href="?logout=1" class="logout-btn"
-       onclick="return confirm('Log out?')">
-      ↩ Logout
     </a>
   </div>
 </div>
