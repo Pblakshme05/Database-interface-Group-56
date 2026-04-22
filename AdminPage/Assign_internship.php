@@ -11,6 +11,7 @@ $assessors_result = getAssessors();
 $selected_student_id = $_POST['student_id'] ?? "";
 $student_name = "";
 $current_assessors = [];
+$is_locked = false;
 
 if ($selected_student_id) {
     $sql_student = "SELECT student_name FROM Student WHERE student_id = ?";
@@ -27,21 +28,37 @@ if ($student_name) {
             $current_assessors[] = $row['assessor_name'];
         }
     }
+
+    // Check if BOTH assessors have already submitted marks (final_result has both marks)
+    $sql_lock = "SELECT assessor_1_mark, assessor_2_mark FROM final_result 
+                 WHERE student_name = ? 
+                 AND assessor_1_mark IS NOT NULL 
+                 AND assessor_2_mark IS NOT NULL 
+                 LIMIT 1";
+    $res_lock = executePreparedStatement($sql_lock, [$student_name]);
+    if ($res_lock instanceof mysqli_result && $res_lock->num_rows > 0) {
+        $is_locked = true;
+    }
 }
 
 if ($student_name && isset($_POST['save_assessors'])) {
-    $assessor_ids = $_POST['assessor_ids'] ?? [];
-    if (!assignAssessorsToStudent($student_name, $assessor_ids)) {
-        $message = "Please select exactly 2 assessors.";
+    if ($is_locked) {
+        $message = "Cannot change assessors — both assessors have already submitted marks for this student.";
         $msgType = "error";
     } else {
-        $message = "Assessors updated successfully!";
-        $msgType = "success";
-        $current_assessors = [];
-        $res_current = getStudentAssessors($student_name);
-        if ($res_current instanceof mysqli_result) {
-            while ($row = $res_current->fetch_assoc()) {
-                $current_assessors[] = $row['assessor_name'];
+        $assessor_ids = $_POST['assessor_ids'] ?? [];
+        if (!assignAssessorsToStudent($student_name, $assessor_ids)) {
+            $message = "Please select exactly 2 assessors.";
+            $msgType = "error";
+        } else {
+            $message = "Assessors updated successfully!";
+            $msgType = "success";
+            $current_assessors = [];
+            $res_current = getStudentAssessors($student_name);
+            if ($res_current instanceof mysqli_result) {
+                while ($row = $res_current->fetch_assoc()) {
+                    $current_assessors[] = $row['assessor_name'];
+                }
             }
         }
     }
@@ -52,7 +69,6 @@ if ($student_name && isset($_POST['save_assessors'])) {
 <head>
 <meta charset="UTF-8">
 <title>Assign Internship – UNM Portal</title>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -77,7 +93,6 @@ body::before {
     z-index: -1;
 }
 
-/* HEADER */
 .top-header {
     width: 100%;
     padding: 15px 40px;
@@ -89,9 +104,7 @@ body::before {
 .header-logo { width: 40px; height: 40px; border-radius: 10px; object-fit: cover; }
 .header-text { display: flex; flex-direction: column; }
 .main-title { color: white; font-weight: 600; font-size: 16px; }
-.sub-title { color: rgba(255,255,255,0.6); font-size: 12px; }
 
-/* LAYOUT */
 .page { display: flex; justify-content: center; margin-top: 50px; padding-bottom: 60px; }
 .container { width: 520px; }
 
@@ -116,7 +129,6 @@ body::before {
     border: 1px solid rgba(255,255,255,0.13);
 }
 
-/* TOAST */
 .toast {
     margin-bottom: 18px;
     padding: 12px 16px;
@@ -127,7 +139,6 @@ body::before {
 .toast.success { background: rgba(80,200,120,0.2); color: #aaffcc; border: 1px solid rgba(80,200,120,0.3); }
 .toast.error   { background: rgba(255,80,80,0.2);  color: #ffb3b3; border: 1px solid rgba(255,80,80,0.3); }
 
-/* FORM FIELDS */
 .form-group { margin-bottom: 18px; }
 .form-group label {
     display: block;
@@ -168,14 +179,12 @@ body::before {
 }
 .form-group select option { background: #0f1e46; color: white; }
 
-/* DIVIDER */
 .divider {
     border: none;
     border-top: 1px solid rgba(255,255,255,0.1);
     margin: 22px 0;
 }
 
-/* CURRENT ASSESSORS */
 .sub-label {
     font-size: 12px;
     font-weight: 600;
@@ -201,7 +210,6 @@ body::before {
     font-style: italic;
 }
 
-/* CHECKBOX LIST */
 .checkbox-list { display: flex; flex-direction: column; gap: 10px; }
 .checkbox-item {
     display: flex;
@@ -223,7 +231,6 @@ body::before {
 }
 .checkbox-item span { color: white; font-size: 14px; }
 
-/* SUBMIT BUTTON */
 .btn-submit {
     width: 100%;
     height: 48px;
@@ -238,16 +245,43 @@ body::before {
     transition: background 0.2s;
 }
 .btn-submit:hover { background: rgba(70,105,180,0.7); }
+
+/* Locked state */
+.lock-notice {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 16px 18px;
+    border-radius: 12px;
+    background: rgba(255, 180, 50, 0.12);
+    border: 1px solid rgba(255, 180, 50, 0.3);
+    margin-top: 20px;
+}
+.lock-icon {
+    font-size: 22px;
+    flex-shrink: 0;
+    line-height: 1;
+}
+.lock-text h4 {
+    color: #ffd97a;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+.lock-text p {
+    color: rgba(255, 220, 130, 0.7);
+    font-size: 12px;
+    line-height: 1.5;
+}
 </style>
 </head>
 <body>
 
 <div class="top-header">
     <div class="header-left">
-        <img src="logo_img.png" class="header-logo">
+        <img src="../logo_img.png" class="header-logo">
         <div class="header-text">
-            <div class="main-title">UNM Portal</div>
-            <div class="sub-title">Administration Portal</div>
+            <div class="main-title">UNM Internship Portal</div>
         </div>
     </div>
 </div>
@@ -297,28 +331,43 @@ body::before {
                     <?php endif; ?>
                 </div>
 
-                <hr class="divider">
+                <?php if ($is_locked): ?>
 
-                <!-- Assign Assessors -->
-                <div class="form-group">
-                    <label>Assign Assessors <span style="font-weight:400;text-transform:none;letter-spacing:0;color:rgba(255,255,255,0.4)">(select exactly 2)</span></label>
-                    <div class="checkbox-list">
-                        <?php
-                        if ($assessors_result instanceof mysqli_result) {
-                            $assessors_result->data_seek(0);
-                            while ($row = $assessors_result->fetch_assoc()) {
-                                echo "
-                                <label class='checkbox-item'>
-                                    <input type='checkbox' name='assessor_ids[]' value='{$row['assessor_id']}'>
-                                    <span>" . htmlspecialchars($row['assessor_name']) . "</span>
-                                </label>";
-                            }
-                        }
-                        ?>
+                    <!-- lock if both assessors already marked this student -->
+                    <hr class="divider">
+                    <div class="lock-notice">
+                        <div class="lock-text">
+                            <h4>Not allowed to Assign Assessors </h4>
+                            <p>Both assessors have already submitted their marks for this student. The assignment can no longer be changed.</p>
+                        </div>
                     </div>
-                </div>
 
-                <button type="submit" name="save_assessors" class="btn-submit">Assign / Update Assessors</button>
+                <?php else: ?>
+
+                    <hr class="divider">
+
+                    <!-- Assign Assessors -->
+                    <div class="form-group">
+                        <label>Assign Assessors <span style="font-weight:400;text-transform:none;letter-spacing:0;color:rgba(255,255,255,0.4)">(select exactly 2)</span></label>
+                        <div class="checkbox-list">
+                            <?php
+                            if ($assessors_result instanceof mysqli_result) {
+                                $assessors_result->data_seek(0);
+                                while ($row = $assessors_result->fetch_assoc()) {
+                                    echo "
+                                    <label class='checkbox-item'>
+                                        <input type='checkbox' name='assessor_ids[]' value='{$row['assessor_id']}'>
+                                        <span>" . htmlspecialchars($row['assessor_name']) . "</span>
+                                    </label>";
+                                }
+                            }
+                            ?>
+                        </div>
+                    </div>
+
+                    <button type="submit" name="save_assessors" class="btn-submit">Assign / Update Assessors</button>
+
+                <?php endif; ?>
 
             <?php endif; ?>
 

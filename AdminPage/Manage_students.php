@@ -76,7 +76,6 @@ if (!isset($editMode)) {
 <head>
 <meta charset="UTF-8">
 <title>Manage Students – UNM Portal</title>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -266,10 +265,9 @@ tr:hover td { background: rgba(255,255,255,0.04); }
 
 <div class="top-header">
     <div class="header-left">
-        <img src="logo_img.png" class="header-logo">
+        <img src="../logo_img.png" class="header-logo">
         <div class="header-text">
-            <div class="main-title">UNM Portal</div>
-            <div class="sub-title">Administration Portal</div>
+            <div class="main-title">UNM Internship Portal</div>
         </div>
     </div>
 </div>
@@ -279,21 +277,20 @@ tr:hover td { background: rgba(255,255,255,0.04); }
 
 <?php if (isset($deleteSuccess)): ?>
 
-    <!-- DELETE SUCCESS SCREEN -->
+    <!--DELETATION PART -->
     <a href="http://localhost:8888/AdminPage/Manage_students.php" class="btn-return">&#8592; Return to Manage Students</a>
     <div class="section-title">Manage Students</div>
     <div class="card" style="max-width:480px; margin:0 auto;">
         <div class="result-box">
-            <div class="big-icon">🗑️</div>
             <h2>Student Deleted Successfully</h2>
-            <p>The student record has been removed from the system.</p>
+            <p>The student infon has been removed from the database.</p>
             <a href="http://localhost:8888/AdminPage/Manage_students.php" class="btn btn-return" style="margin-bottom:0;">&#8592; Return to Manage Students</a>
         </div>
     </div>
 
 <?php elseif (isset($editMode) && $editMode): ?>
 
-    <!-- EDIT FORM -->
+    <!-- EDITING PART -->
     <a href="http://localhost:8888/AdminPage/Manage_students.php" class="btn-return">&#8592; Return to Manage Students</a>
     <div class="section-title">Edit Student</div>
     <div class="card" style="max-width:480px; margin:0 auto;">
