@@ -156,16 +156,16 @@ if ($student_name && isset($_POST['save_assessors'])) {
   .topbar-left { display: flex; align-items: center; gap: 1rem; }
   .back-btn {
     display: flex; align-items: center; gap: 6px;
-    font-size: 13px; color: #fff; text-decoration: none;
+    font-size: 14px; color: #fff; text-decoration: none;
     font-weight: 500; padding: 6px 12px; border-radius: 8px;
     border: 1px solid rgba(255,255,255,0.2);
     background: rgba(255,255,255,0.1);
     transition: background 0.15s;
   }
   .back-btn:hover { background: rgba(255,255,255,0.2); }
-  .page-title { font-size: 15px; font-weight: 600; color: #fff; }
+  .page-title { font-size: 16px; font-weight: 600; color: #fff; }
   .admin-pill {
-    font-size: 12px; font-weight: 500;
+    font-size: 13px; font-weight: 500;
     background: var(--gold-light); color: var(--gold);
     border: 1px solid #e8d99a; padding: 4px 12px; border-radius: 20px;
   }
@@ -173,11 +173,11 @@ if ($student_name && isset($_POST['save_assessors'])) {
   .main { max-width: 620px; margin: 3rem auto; padding: 0 20px 60px; }
 
   .section-header { margin-bottom: 1.5rem; }
-  .section-header h1 { font-size: 1.3rem; font-weight: 700; color: var(--ink); }
+  .section-header h1 { font-size: 1.5rem; font-weight: 700; color: var(--ink); }
 
   .alert {
     padding: 10px 16px; border-radius: 10px;
-    font-size: 13px; margin-bottom: 1.2rem;
+    font-size: 14px; margin-bottom: 1.2rem;
     display: flex; align-items: center; gap: 8px;
   }
   .alert-success { background: var(--green-light); color: var(--green); }
@@ -192,21 +192,21 @@ if ($student_name && isset($_POST['save_assessors'])) {
     margin-bottom: 1.2rem;
   }
 
-  .card-title { font-size: 13px; font-weight: 600; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 1rem; }
+  .card-title { font-size: 14px; font-weight: 600; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 1rem; }
 
   .row-two { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 
   .form-group { margin-bottom: 0; }
   .form-group label {
-    display: block; font-size: 13px; font-weight: 600;
+    display: block; font-size: 14px; font-weight: 600;
     color: var(--ink); margin-bottom: 6px;
   }
   .form-group select,
   .form-group input[type="text"] {
-    width: 100%; height: 44px; border-radius: 10px;
+    width: 100%; height: 46px; border-radius: 10px;
     border: 1px solid var(--border); padding: 0 14px;
     background: var(--bg); color: var(--ink);
-    font-size: 14px; font-family: 'Poppins', sans-serif;
+    font-size: 15px; font-family: 'Poppins', sans-serif;
     outline: none; transition: border-color 0.2s, box-shadow 0.2s;
   }
   .form-group select:focus,
@@ -228,45 +228,45 @@ if ($student_name && isset($_POST['save_assessors'])) {
   .divider { border: none; border-top: 1px solid var(--border); margin: 1.2rem 0; }
 
   .summary-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 0; }
-  .sub-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: var(--ink-soft); margin-bottom: 8px; }
+  .sub-label { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: var(--ink-soft); margin-bottom: 8px; }
 
   .chip {
-    display: inline-block; padding: 3px 12px; border-radius: 20px;
-    font-size: 12px; font-weight: 500;
+    display: inline-block; padding: 4px 13px; border-radius: 20px;
+    font-size: 13px; font-weight: 500;
     background: var(--green-light); color: var(--green);
     border: 1px solid #bbf7d0; margin: 2px 2px 2px 0;
   }
   .chip-company {
-    display: inline-block; padding: 3px 12px; border-radius: 20px;
-    font-size: 12px; font-weight: 500;
+    display: inline-block; padding: 4px 13px; border-radius: 20px;
+    font-size: 13px; font-weight: 500;
     background: var(--gold-light); color: var(--gold);
     border: 1px solid #e8d99a;
   }
-  .chip-empty { font-size: 12px; color: #bbb; font-style: italic; }
+  .chip-empty { font-size: 13px; color: #bbb; font-style: italic; }
 
   .checkbox-list { display: flex; flex-direction: column; gap: 8px; }
   .checkbox-item {
     display: flex; align-items: center; gap: 12px;
-    padding: 11px 14px; border-radius: 10px;
+    padding: 12px 14px; border-radius: 10px;
     background: var(--bg); border: 1px solid var(--border);
     cursor: pointer; transition: background 0.15s, border-color 0.15s;
   }
   .checkbox-item:hover { background: var(--accent-light); border-color: #c2cde0; }
-  .checkbox-item input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer; flex-shrink: 0; }
-  .checkbox-item span { color: var(--ink); font-size: 14px; }
+  .checkbox-item input[type="checkbox"] { width: 17px; height: 17px; accent-color: var(--accent); cursor: pointer; flex-shrink: 0; }
+  .checkbox-item span { color: var(--ink); font-size: 15px; }
 
   .lock-notice {
     padding: 14px 16px; border-radius: 10px;
     background: #fefce8; border: 1px solid #fde68a;
     margin-top: 1rem;
   }
-  .lock-notice h4 { font-size: 13px; font-weight: 600; color: #92400e; margin-bottom: 4px; }
-  .lock-notice p  { font-size: 12px; color: #b45309; line-height: 1.5; }
+  .lock-notice h4 { font-size: 14px; font-weight: 600; color: #92400e; margin-bottom: 4px; }
+  .lock-notice p  { font-size: 13px; color: #b45309; line-height: 1.5; }
 
   .btn-submit {
     width: 100%; background: var(--accent); color: #fff;
     border: none; padding: 12px; border-radius: 10px;
-    font-size: 15px; font-family: 'Poppins', sans-serif;
+    font-size: 16px; font-family: 'Poppins', sans-serif;
     font-weight: 600; cursor: pointer; transition: background 0.2s; margin-top: 1rem;
   }
   .btn-submit:hover { background: var(--accent-hover); }
@@ -343,7 +343,7 @@ if ($student_name && isset($_POST['save_assessors'])) {
           <div>
             <div class="sub-label">Current Company</div>
             <?php if ($current_company): ?>
-              <span class="chip-company"> <?= htmlspecialchars($current_company) ?></span>
+              <span class="chip-company"><?= htmlspecialchars($current_company) ?></span>
             <?php else: ?>
               <span class="chip-empty">No company assigned yet</span>
             <?php endif; ?>

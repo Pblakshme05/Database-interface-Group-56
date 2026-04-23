@@ -73,16 +73,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
   .topbar-left { display: flex; align-items: center; gap: 1rem; }
   .back-btn {
     display: flex; align-items: center; gap: 6px;
-    font-size: 13px; color: #fff; text-decoration: none;
+    font-size: 14px; color: #fff; text-decoration: none;
     font-weight: 500; padding: 6px 12px; border-radius: 8px;
     border: 1px solid rgba(255,255,255,0.2);
     background: rgba(255,255,255,0.1);
     transition: background 0.15s;
   }
   .back-btn:hover { background: rgba(255,255,255,0.2); }
-  .page-title { font-size: 15px; font-weight: 600; color: #fff; }
+  .page-title { font-size: 16px; font-weight: 600; color: #fff; }
   .admin-pill {
-    font-size: 12px; font-weight: 500;
+    font-size: 13px; font-weight: 500;
     background: var(--gold-light); color: var(--gold);
     border: 1px solid #e8d99a;
     padding: 4px 12px; border-radius: 20px;
@@ -95,7 +95,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
   }
 
   .section-header { margin-bottom: 1.5rem; }
-  .section-header h1 { font-size: 1.3rem; font-weight: 700; color: var(--ink); }
+  .section-header h1 { font-size: 1.5rem; font-weight: 700; color: var(--ink); }
 
   .card {
     background: var(--card);
@@ -105,12 +105,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     box-shadow: 0 2px 6px rgba(0,0,0,0.05);
   }
 
-  .card-title { font-size: 16px; font-weight: 700; color: var(--ink); margin-bottom: 4px; }
-  .card-sub { font-size: 13px; color: var(--ink-soft); margin-bottom: 1.8rem; }
+  .card-title { font-size: 17px; font-weight: 700; color: var(--ink); margin-bottom: 4px; }
+  .card-sub { font-size: 14px; color: var(--ink-soft); margin-bottom: 1.8rem; }
 
   .field { margin-bottom: 1.2rem; }
   .field label {
-    display: block; font-size: 13px; font-weight: 600;
+    display: block; font-size: 14px; font-weight: 600;
     color: var(--ink); margin-bottom: 6px;
   }
   .field input {
@@ -118,7 +118,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     border: 1px solid var(--border);
     border-radius: 10px;
     padding: 10px 14px;
-    font-size: 14px;
+    font-size: 15px;
     font-family: 'Poppins', sans-serif;
     color: var(--ink);
     background: var(--bg);
@@ -138,7 +138,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     border: none;
     padding: 12px;
     border-radius: 10px;
-    font-size: 15px;
+    font-size: 16px;
     font-family: 'Poppins', sans-serif;
     font-weight: 600;
     cursor: pointer;
@@ -149,7 +149,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
   .alert {
     padding: 10px 16px; border-radius: 10px;
-    font-size: 13px; margin-bottom: 1.2rem;
+    font-size: 14px; margin-bottom: 1.2rem;
     display: flex; align-items: center; gap: 8px;
   }
   .alert-success { background: var(--green-light); color: var(--green); }

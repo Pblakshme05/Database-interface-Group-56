@@ -66,13 +66,13 @@ $result_count   = $conn->query("SELECT COUNT(*) FROM final_result WHERE final_av
 
   .brand-text {
     font-family: 'Playfair Display', serif;
-    font-size: 19px;
+    font-size: 23px; /* was 19px */
     font-weight: 700;
     color: #ffffff;
   }
 
   .brand-sub {
-    font-size: 11px;
+    font-size: 13px; /* was 11px */
     color: #a8bccc;
     font-weight: 400;
     letter-spacing: 0.12em;
@@ -86,7 +86,7 @@ $result_count   = $conn->query("SELECT COUNT(*) FROM final_result WHERE final_av
     align-items: center;
     gap: 6px;
     font-family: 'Outfit', sans-serif;
-    font-size: 14px;
+    font-size: 16px; /* was 14px */
     font-weight: 600;
     color: #fca5a5;
     background: rgba(239,68,68,0.1);
@@ -134,7 +134,7 @@ $result_count   = $conn->query("SELECT COUNT(*) FROM final_result WHERE final_av
   .welcome-left { position: relative; z-index: 1; }
 
   .welcome-eyebrow {
-    font-size: 12px;
+    font-size: 14px; /* was 12px */
     font-weight: 600;
     letter-spacing: 0.16em;
     text-transform: uppercase;
@@ -145,7 +145,7 @@ $result_count   = $conn->query("SELECT COUNT(*) FROM final_result WHERE final_av
 
   .welcome-card h1 {
     font-family: 'Playfair Display', serif;
-    font-size: 2.5rem;
+    font-size: 2.8rem; /* was 2.5rem */
     font-weight: 800;
     color: #ffffff;
     line-height: 1.15;
@@ -153,7 +153,7 @@ $result_count   = $conn->query("SELECT COUNT(*) FROM final_result WHERE final_av
   }
 
   .welcome-card p {
-    font-size: 15px;
+    font-size: 18px; /* was 15px */
     color: rgba(255,255,255,0.75);
     font-weight: 300;
     margin: 0;
@@ -182,7 +182,7 @@ $result_count   = $conn->query("SELECT COUNT(*) FROM final_result WHERE final_av
 
   .hero-stat-num {
     font-family: 'Playfair Display', serif;
-    font-size: 2.1rem;
+    font-size: 2.4rem; /* was 2.1rem */
     font-weight: 700;
     color: #ffffff;
     display: block;
@@ -190,7 +190,7 @@ $result_count   = $conn->query("SELECT COUNT(*) FROM final_result WHERE final_av
   }
 
   .hero-stat-label {
-    font-size: 11px;
+    font-size: 13px; /* was 11px */
     color: #a8bccc;
     text-transform: uppercase;
     letter-spacing: 0.1em;
@@ -243,14 +243,14 @@ $result_count   = $conn->query("SELECT COUNT(*) FROM final_result WHERE final_av
 
   .card h3 {
     font-family: 'Playfair Display', serif;
-    font-size: 17px;
+    font-size: 20px; /* was 17px */
     font-weight: 700;
     color: var(--navy);
     margin: 0 0 6px 0;
   }
 
   .card p {
-    font-size: 13.5px;
+    font-size: 15px; /* was 13.5px */
     color: var(--muted);
     font-weight: 400;
     line-height: 1.55;
@@ -268,7 +268,7 @@ $result_count   = $conn->query("SELECT COUNT(*) FROM final_result WHERE final_av
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 14px;
+    font-size: 16px; /* was 14px */
     color: var(--muted);
     transition: background 0.2s, color 0.2s, border-color 0.2s;
   }
@@ -286,7 +286,7 @@ $result_count   = $conn->query("SELECT COUNT(*) FROM final_result WHERE final_av
   @media (max-width: 700px) {
     .header { padding: 0 1.2rem; }
     .welcome-card { margin: 1rem; padding: 1.8rem 1.5rem; }
-    .welcome-card h1 { font-size: 1.7rem; }
+    .welcome-card h1 { font-size: 1.9rem; } /* was 1.7rem */
     .container { grid-template-columns: repeat(2, 1fr); padding: 1rem 1rem 1.5rem; }
   }
   @media (max-width: 480px) {
@@ -383,14 +383,6 @@ $result_count   = $conn->query("SELECT COUNT(*) FROM final_result WHERE final_av
         <a href="view_results.php">
             <h3>View Results</h3>
             <p>Check student results</p>
-            <div class="card-arrow">→</div>
-        </a>
-    </div>
-
-    <div class="card">
-        <a href="search_student.php">
-            <h3>Search Student</h3>
-            <p>Find student records</p>
             <div class="card-arrow">→</div>
         </a>
     </div>
