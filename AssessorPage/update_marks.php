@@ -120,9 +120,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $a2_mark = ($a2_id && isset($markMap[$a2_id])) ? floatval($markMap[$a2_id]) : null;
 
             // Calculate final mark
-            // - Both marked  → average of the two
-            // - Only 1 marked → that assessor's mark
-            // - Neither       → null
             if ($a1_mark !== null && $a2_mark !== null) {
                 $final_avg = round(($a1_mark + $a2_mark) / 2, 2);
             } elseif ($a1_mark !== null) {
@@ -140,7 +137,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $existing_result = $chk->get_result()->fetch_assoc();
 
             if ($existing_result) {
-                // Update existing row
                 $upd = $conn->prepare("
                     UPDATE final_result 
                     SET assessor_1_id   = ?,
@@ -153,7 +149,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 $upd->bind_param("ididds", $a1_id, $a1_mark, $a2_id, $a2_mark, $final_avg, $sname);
                 $upd->execute();
             } else {
-                // Insert new row (edge case: row missing)
                 $ins = $conn->prepare("
                     INSERT INTO final_result 
                         (student_name, assessor_1_id, assessor_1_mark, assessor_2_id, assessor_2_mark, final_avg_mark)
@@ -227,47 +222,308 @@ if ($selected_id) {
 <meta charset="UTF-8">
 <title>Update Marks</title>
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: Arial, sans-serif; background: #f4f4f4; color: #333; }
-  .container { max-width: 900px; margin: 2rem auto; padding: 0 1rem; }
-  h2 { font-size: 1.3rem; font-weight: 600; margin-bottom: 1.5rem; }
-  .card { background: #fff; border: 1px solid #e0e0e0; border-radius: 10px; padding: 1.5rem; margin-bottom: 1.5rem; }
-  .student-list a { display: flex; align-items: center; gap: 12px; padding: 10px 0;
-    border-bottom: 1px solid #f0f0f0; text-decoration: none; color: inherit; }
-  .student-list a:last-child { border-bottom: none; }
-  .student-list a:hover { background: #f9f9f9; border-radius: 6px; padding-left: 6px; transition: padding 0.15s; }
-  .avatar { width: 38px; height: 38px; border-radius: 50%; background: #dbeafe;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 12px; font-weight: 600; color: #1d4ed8; flex-shrink: 0; }
-  .stu-name { font-weight: 600; font-size: 14px; }
-  .stu-prog { font-size: 12px; color: #888; }
-  .done-badge { margin-left: auto; font-size: 11px; background: #dcfce7;
-    color: #166534; padding: 2px 8px; border-radius: 20px; white-space: nowrap; }
-  .criteria-row { display: flex; align-items: center; gap: 12px; margin-bottom: 1.2rem; }
-  .criteria-label { width: 150px; flex-shrink: 0; }
-  .criteria-label strong { display: block; font-size: 14px; }
-  .criteria-label span { font-size: 11px; color: #999; }
-  .criteria-row input[type=range] { flex: 1; accent-color: #6c63ff; }
-  .slider-val { min-width: 42px; text-align: right; font-weight: 600; font-size: 14px; }
-  .comments-label { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
-  textarea { width: 100%; border: 1px solid #ddd; border-radius: 8px;
-    padding: 10px; font-size: 14px; resize: vertical; min-height: 80px; }
-  .submit-row { display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; }
-  .weighted-score { font-size: 13px; color: #666; }
-  .weighted-score strong { font-size: 1.4rem; color: #333; }
-  .btn-submit { background: #6c63ff; color: #fff; border: none;
-    padding: 10px 28px; border-radius: 8px; font-size: 15px; cursor: pointer; }
-  .btn-submit:hover { background: #5a52e0; }
-  .alert { padding: 10px 16px; border-radius: 8px; font-size: 14px; margin-bottom: 1rem; }
-  .alert-success { background: #dcfce7; color: #166534; }
-  .alert-error   { background: #fee2e2; color: #991b1b; }
-  .back-link { font-size: 13px; color: #6c63ff; text-decoration: none; display: inline-block; margin-bottom: 1rem; }
-  .section-title { font-size: 11px; color: #999; text-transform: uppercase;
-    letter-spacing: 0.06em; margin-bottom: 1rem; }
-  .no-students { text-align: center; color: #aaa; font-size: 14px; padding: 1rem 0; }
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    min-height: 100vh;
+    background: #f4f6fb;
+    color: #0d1f3c;
+}
+
+/* ── Top Header (from enter_marks) ── */
+.top-header {
+    width: 100%;
+    padding: 15px 40px;
+    background: #0d1f3c;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.header-logo {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+}
+
+.header-text {
+    display: flex;
+    flex-direction: column;
+}
+
+.main-title {
+    font-family: 'Poppins', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.sub-title {
+    font-size: 12px;
+    opacity: 0.6;
+    font-family: 'DM Sans', sans-serif;
+}
+
+.assessor-pill {
+    font-size: 12px;
+    font-weight: 500;
+    background: #fdf6e3;
+    color: #c8a84b;
+    border: 1px solid #e8d99a;
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-family: 'DM Sans', sans-serif;
+}
+
+/* ── Container ── */
+.container {
+    max-width: 900px;
+    margin: 40px auto;
+    padding: 0 20px 40px;
+}
+
+.back-link {
+    font-size: 13px;
+    color: #0d1f3c;
+    text-decoration: none;
+    display: inline-block;
+    margin-bottom: 1rem;
+    opacity: 0.6;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 500;
+    padding: 6px 12px;
+    border-radius: 8px;
+    border: 1px solid #dde3ef;
+    background: #e8e8f8;
+    transition: opacity 0.2s, background 0.2s;
+}
+.back-link:hover { opacity: 1; background: #d8d8f0; }
+
+h2 {
+    font-family: 'Poppins', sans-serif;
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    color: #0d1f3c;
+}
+
+/* ── Card ── */
+.card {
+    background: #ffffff;
+    border: 1px solid #dde3ef;
+    border-radius: 20px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0px 2px 6px rgba(0,0,0,0.06);
+}
+
+.section-title {
+    font-size: 11px;
+    color: #4a5f7a;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 1rem;
+    font-weight: 600;
+    font-family: 'DM Sans', sans-serif;
+}
+
+/* ── Student list ── */
+.student-list a {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 8px;
+    border-bottom: 1px solid #f0f2f8;
+    text-decoration: none;
+    color: inherit;
+    border-radius: 8px;
+    transition: background 0.15s;
+}
+.student-list a:last-child { border-bottom: none; }
+.student-list a:hover { background: #f4f6fb; }
+
+.avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: #e0e8ff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Syne', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    color: #0d1f3c;
+    flex-shrink: 0;
+}
+
+.stu-name {
+    font-weight: 600;
+    font-size: 14px;
+    color: #0d1f3c;
+    font-family: 'Syne', sans-serif;
+}
+.stu-prog {
+    font-size: 12px;
+    color: #4a5f7a;
+    font-family: 'DM Sans', sans-serif;
+}
+
+.done-badge {
+    margin-left: auto;
+    font-size: 11px;
+    background: #dcfce7;
+    color: #166534;
+    padding: 3px 10px;
+    border-radius: 20px;
+    white-space: nowrap;
+    font-weight: 500;
+    font-family: 'DM Sans', sans-serif;
+}
+
+/* ── Criteria rows ── */
+.criteria-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 1.2rem;
+}
+
+.criteria-label { width: 150px; flex-shrink: 0; }
+.criteria-label strong {
+    display: block;
+    font-size: 14px;
+    color: #0d1f3c;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+}
+.criteria-label span {
+    font-size: 11px;
+    color: #4a5f7a;
+    font-family: 'DM Sans', sans-serif;
+}
+
+.criteria-row input[type=range] {
+    flex: 1;
+    accent-color: #0d1f3c;
+}
+
+.slider-val {
+    min-width: 42px;
+    text-align: right;
+    font-weight: 600;
+    font-size: 14px;
+    color: #0d1f3c;
+    font-family: 'Syne', sans-serif;
+}
+
+/* ── Comments ── */
+.comments-label {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: #0d1f3c;
+    font-family: 'Poppins', sans-serif;
+}
+
+textarea {
+    width: 100%;
+    border: 1px solid #dde3ef;
+    border-radius: 10px;
+    padding: 10px;
+    font-size: 14px;
+    resize: vertical;
+    min-height: 80px;
+    font-family: 'Poppins', sans-serif;
+    color: #0d1f3c;
+    background: #f4f6fb;
+    outline: none;
+    transition: border-color 0.2s;
+}
+textarea:focus { border-color: #0d1f3c; }
+
+/* ── Submit row ── */
+.submit-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1.5rem;
+}
+
+.weighted-score {
+    font-size: 13px;
+    color: #4a5f7a;
+    font-family: 'DM Sans', sans-serif;
+}
+.weighted-score strong {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.4rem;
+    color: #0d1f3c;
+}
+
+.btn-submit {
+    background: #0d1f3c;
+    color: #fff;
+    border: none;
+    padding: 10px 28px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.btn-submit:hover { background: #1e3560; }
+
+/* ── Alerts ── */
+.alert {
+    padding: 10px 16px;
+    border-radius: 10px;
+    font-size: 14px;
+    margin-bottom: 1rem;
+    font-family: 'DM Sans', sans-serif;
+}
+.alert-success { background: #dcfce7; color: #166534; }
+.alert-error   { background: #fee2e2; color: #991b1b; }
+
+/* ── No students ── */
+.no-students {
+    text-align: center;
+    color: #4a5f7a;
+    font-size: 14px;
+    padding: 1rem 0;
+    font-family: 'DM Sans', sans-serif;
+}
 </style>
 </head>
 <body>
+
+<div class="top-header">
+    <div class="header-left">
+        <img src="../logo_img.png" class="header-logo">
+        <div class="header-text">
+            <div class="main-title">UNM Internship Portal</div>
+            <div class="sub-title">Update Marks</div>
+        </div>
+    </div>
+    <span class="assessor-pill"><?= htmlspecialchars($assessor_name) ?></span>
+</div>
+
 <div class="container">
   <a href="../AssessorPage/AssessorPage.php" class="back-link">← Back to Dashboard</a>
   <h2>Update Student Marks</h2>
@@ -348,7 +604,7 @@ if ($selected_id) {
       </div>
       <?php endforeach; ?>
 
-      <hr style="border:none;border-top:1px solid #eee;margin:1rem 0">
+      <hr style="border:none;border-top:1px solid #dde3ef;margin:1rem 0">
 
       <div class="comments-label">Comments</div>
       <textarea name="comments"><?= htmlspecialchars($existing_comments) ?></textarea>
@@ -356,7 +612,7 @@ if ($selected_id) {
       <div class="submit-row">
         <div class="weighted-score">
           Weighted score: <strong id="weightedDisplay">0.00</strong>
-          <span style="font-size:12px;color:#aaa"> / 100</span>
+          <span style="font-size:12px;color:#4a5f7a"> / 100</span>
         </div>
         <button type="submit" class="btn-submit">Update Marks</button>
       </div>

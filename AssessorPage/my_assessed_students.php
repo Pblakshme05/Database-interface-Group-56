@@ -36,27 +36,28 @@ $results = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 <head>
 <meta charset="UTF-8">
 <title>My Assessed Students</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #f0ede8;
+    --bg: #f4f6fb;
     --card: #ffffff;
-    --ink: #1a1a1a;
-    --ink-soft: #666;
-    --accent: #2d2d6b;
+    --ink: #0d1f3c;
+    --ink-soft: #4a5f7a;
+    --accent: #0d1f3c;
+    --accent-hover: #1e3560;
     --accent-light: #e8e8f8;
     --gold: #c8a84b;
     --gold-light: #fdf6e3;
-    --border: #e0dbd2;
-    --green: #2d6b4a;
-    --green-light: #e8f5ee;
+    --border: #dde3ef;
+    --green: #166534;
+    --green-light: #dcfce7;
     --radius: 14px;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
   body {
-    font-family: 'DM Sans', sans-serif;
+    font-family: 'Poppins', sans-serif;
     background: var(--bg);
     color: var(--ink);
     min-height: 100vh;
@@ -64,8 +65,8 @@ $results = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
   /* ── Header ── */
   .topbar {
-    background: var(--card);
-    border-bottom: 1px solid var(--border);
+    background: var(--accent);
+    border-bottom: 1px solid rgba(255,255,255,0.1);
     padding: 0 2rem;
     height: 60px;
     display: flex;
@@ -78,39 +79,38 @@ $results = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
   .topbar-left { display: flex; align-items: center; gap: 1rem; }
   .back-btn {
     display: flex; align-items: center; gap: 6px;
-    font-size: 13px; color: var(--accent); text-decoration: none;
-    font-family: 'DM Sans', sans-serif; font-weight: 500;
+    font-size: 13px; color: #fff; text-decoration: none;
+    font-family: 'Poppins', sans-serif; font-weight: 500;
     padding: 6px 12px; border-radius: 8px;
-    border: 1px solid var(--accent-light);
-    background: var(--accent-light);
+    border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.1);
     transition: background 0.15s;
   }
-  .back-btn:hover { background: #d8d8f0; }
+  .back-btn:hover { background: rgba(255,255,255,0.2); }
   .page-title {
-    font-family: 'Syne', sans-serif;
-    font-size: 15px; font-weight: 700;
-    color: var(--ink); letter-spacing: 0.02em;
+    font-family: 'Poppins', sans-serif;
+    font-size: 15px; font-weight: 600;
+    color: #fff;
   }
   .assessor-pill {
     font-size: 12px; font-weight: 500;
     background: var(--gold-light); color: var(--gold);
     border: 1px solid #e8d99a;
     padding: 4px 12px; border-radius: 20px;
+    font-family: 'Poppins', sans-serif;
   }
 
   /* ── Main ── */
   .main { max-width: 960px; margin: 0 auto; padding: 2.5rem 1.5rem; }
 
-  .section-header {
-    margin-bottom: 2rem;
-  }
+  .section-header { margin-bottom: 2rem; }
   .section-header h1 {
-    font-family: 'Syne', sans-serif;
-    font-size: 1.9rem; font-weight: 800;
-    color: var(--ink); line-height: 1.1;
+    font-family: 'Poppins', sans-serif;
+    font-size: 1.3rem; font-weight: 700;
+    color: var(--ink);
   }
   .section-header p {
-    font-size: 14px; color: var(--ink-soft); margin-top: 6px;
+    font-size: 13px; color: var(--ink-soft); margin-top: 4px;
   }
 
   /* ── Stats bar ── */
@@ -123,10 +123,11 @@ $results = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     border-radius: 10px;
     padding: 12px 20px;
     display: flex; align-items: center; gap: 10px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.04);
   }
   .stat-num {
-    font-family: 'Syne', sans-serif;
-    font-size: 1.5rem; font-weight: 800; color: var(--accent);
+    font-family: 'Poppins', sans-serif;
+    font-size: 1.5rem; font-weight: 700; color: var(--accent);
   }
   .stat-label { font-size: 12px; color: var(--ink-soft); line-height: 1.3; }
 
@@ -144,6 +145,7 @@ $results = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     padding: 1.4rem;
     position: relative;
     transition: box-shadow 0.2s, transform 0.2s;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.04);
   }
   .student-card:hover {
     box-shadow: 0 8px 24px rgba(0,0,0,0.08);
@@ -159,23 +161,23 @@ $results = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     width: 44px; height: 44px; border-radius: 50%;
     background: var(--accent-light);
     display: flex; align-items: center; justify-content: center;
-    font-family: 'Syne', sans-serif;
+    font-family: 'Poppins', sans-serif;
     font-size: 13px; font-weight: 700; color: var(--accent);
     flex-shrink: 0;
   }
 
   .score-badge {
-    font-family: 'Syne', sans-serif;
-    font-size: 1.4rem; font-weight: 800;
+    font-family: 'Poppins', sans-serif;
+    font-size: 1.4rem; font-weight: 700;
     color: var(--accent);
     line-height: 1;
   }
   .score-badge span { font-size: 11px; font-weight: 400; color: var(--ink-soft); }
 
   .stu-name {
-    font-family: 'Syne', sans-serif;
-    font-size: 15px; font-weight: 700;
-    margin-bottom: 3px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 15px; font-weight: 600;
+    margin-bottom: 3px; color: var(--ink);
   }
   .stu-prog {
     font-size: 12px; color: var(--ink-soft);
@@ -190,9 +192,7 @@ $results = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
   }
 
   /* score bar */
-  .score-bar-wrap {
-    margin: 1rem 0 0.8rem;
-  }
+  .score-bar-wrap { margin: 1rem 0 0.8rem; }
   .score-bar-label {
     display: flex; justify-content: space-between;
     font-size: 11px; color: var(--ink-soft); margin-bottom: 5px;
@@ -202,7 +202,7 @@ $results = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
   }
   .score-bar-fill {
     height: 100%; border-radius: 99px;
-    background: linear-gradient(90deg, var(--accent), #6c63ff);
+    background: linear-gradient(90deg, var(--accent), #3b5bdb);
     transition: width 0.8s ease;
   }
 
@@ -212,6 +212,7 @@ $results = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     font-size: 11px; font-weight: 600;
     padding: 3px 10px; border-radius: 20px;
     margin-bottom: 0.8rem;
+    font-family: 'Poppins', sans-serif;
   }
   .grade-A  { background: var(--green-light); color: var(--green); }
   .grade-B  { background: #e8f0fe; color: #1a56db; }
@@ -235,8 +236,8 @@ $results = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
   }
   .empty-icon { font-size: 2.5rem; margin-bottom: 1rem; }
   .empty-state h3 {
-    font-family: 'Syne', sans-serif;
-    font-size: 1.1rem; font-weight: 700; margin-bottom: 6px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 1.1rem; font-weight: 700; margin-bottom: 6px; color: var(--ink);
   }
   .empty-state p { font-size: 13px; color: var(--ink-soft); }
 </style>
@@ -260,7 +261,20 @@ $results = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
   <?php
     $count = count($results);
-    $avg_score = $count > 0 ? round(array_sum(array_column($results, 'final_score')) / $count, 1) : 0;
+
+    // Count total students assigned to this assessor (with internship)
+    $total_stmt = $conn->prepare("
+        SELECT COUNT(*) AS total
+        FROM student_assessors sa
+        JOIN Student s ON sa.student_name = s.student_name
+        JOIN Internship i ON i.student_id = s.student_id
+        WHERE sa.assessor_name = ?
+    ");
+    $total_stmt->bind_param("s", $assessor_name);
+    $total_stmt->execute();
+    $total_row = $total_stmt->get_result()->fetch_assoc();
+    $total_assigned = $total_row['total'] ?? 0;
+    $remaining = $total_assigned - $count;
   ?>
 
   <div class="stats-bar">
@@ -268,12 +282,10 @@ $results = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
       <div class="stat-num"><?= $count ?></div>
       <div class="stat-label">Students<br>Assessed</div>
     </div>
-    <?php if ($count > 0): ?>
     <div class="stat-chip">
-      <div class="stat-num"><?= $avg_score ?></div>
-      <div class="stat-label">Your Average<br>Score Given</div>
+      <div class="stat-num" style="color:#854d0e"><?= $remaining ?></div>
+      <div class="stat-label">Students<br>Remaining</div>
     </div>
-    <?php endif; ?>
   </div>
 
   <?php if ($count === 0): ?>

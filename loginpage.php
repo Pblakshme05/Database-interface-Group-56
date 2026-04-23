@@ -42,7 +42,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Login – Internship Result System</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet"/>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -213,12 +212,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
       </div>
     </div>
 
-    <div class="uni-name">University of Nottingham</div>
-    <div class="uni-sub">Malaysia Campus</div>
+    <div class="uni-name">Internship Result System</div>
+    <div class="uni-sub">University of Nottingham</div>
     <div class="separator"></div>
 
     <div class="form-title">Sign in</div>
-    <div class="form-subtitle">Internship Result System</div>
+    <div class="form-subtitle">Enter your Email & Password</div>
 
     <?php if ($error): ?>
       <div class="error-msg"><?php echo $error; ?></div>
@@ -231,7 +230,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
       </div>
       <div class="field">
         <label for="password">Password</label>
-        <input type="password" id="password" name="password" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;" required/>
+        <input type="password" id="password" name="password" placeholder="••••••••" required/>
       </div>
       <button type="submit" class="btn-login">Sign in</button>
     </form>

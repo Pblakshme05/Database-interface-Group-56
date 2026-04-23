@@ -2,7 +2,7 @@
 session_start();
 
 if (!isset($_SESSION['assessor_id'])) {
-    header("Location: loginpage.php"); // ← adjust this path
+    header("Location: loginpage.php");
     exit();
 }
 ?>
@@ -13,111 +13,266 @@ if (!isset($_SESSION['assessor_id'])) {
 <title>Assessor Dashboard</title>
 
 <style>
-body {
-    font-family: Arial;
-    background-color: #f5f6fa;
-    margin: 0;
-}
+  :root {
+    --navy:      #0d1f3c;
+    --navy-soft: #1e3560;
+    --off-white: #f4f6fb;
+    --muted:     #4a5f7a;
+    --border:    #dde3ef;
+    --gold:      #c9a84c;
+    --card-bg:   #ffffff;
+    --radius:    16px;
+  }
 
-/* HEADER */
-.header {
-    background: white;
-    padding: 20px;
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Outfit', sans-serif;
+    background: var(--off-white);
+    color: var(--navy);
+    min-height: 100vh;
+  }
+
+  .header {
+    background: var(--navy);
+    height: 68px;
+    padding: 0 2.5rem;
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid #ddd;
-}
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 20px rgba(13,31,60,0.5);
+  }
 
-.logout {
+  .header-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .header-brand img {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    object-fit: cover;
+    border: 1px solid rgba(255,255,255,0.15);
+  }
+
+  .brand-text {
+    font-family: 'Playfair Display', serif;
+    font-size: 19px;
+    font-weight: 700;
+    color: #ffffff;
+  }
+
+  .logout {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: #fca5a5;
+    background: rgba(239,68,68,0.1);
+    border: 1px solid rgba(239,68,68,0.2);
+    padding: 7px 18px;
+    border-radius: 10px;
     text-decoration: none;
-    color: red;
-    font-weight: bold;
-}
+    transition: background 0.15s;
+  }
+  .logout:hover { background: rgba(239,68,68,0.22); }
 
-/* WELCOME CARD */
-.welcome-card {
-    background: linear-gradient(135deg, #6a11cb, #2575fc);
-    color: white;
-    margin: 30px;
-    padding: 30px;
-    border-radius: 15px;
-    box-shadow: 0px 4px 10px rgba(0,0,0,0.2);
-}
+  .welcome-card {
+    background: var(--navy);
+    margin: 2rem 2.5rem 0;
+    padding: 2.8rem 3rem;
+    border-radius: 20px;
+    box-shadow: 0 8px 32px rgba(13,31,60,0.22);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+    overflow: hidden;
+  }
 
-.welcome-card h1 {
+  .welcome-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(rgba(255,255,255,0.045) 1px, transparent 1px);
+    background-size: 22px 22px;
+    pointer-events: none;
+  }
+
+  .welcome-card::after {
+    content: '';
+    position: absolute;
+    right: -80px; top: -80px;
+    width: 340px; height: 340px;
+    border-radius: 50%;
+    background: radial-gradient(ellipse, rgba(201,168,76,0.13) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .welcome-left { position: relative; z-index: 1; }
+
+  .welcome-eyebrow {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 12px;
+    display: block;
+  }
+
+  .welcome-card h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: #ffffff;
+    line-height: 1.15;
+    margin: 0 0 12px 0;
+  }
+
+  .welcome-card p {
+    font-size: 15px;
+    color: rgba(255,255,255,0.75);
+    font-weight: 300;
     margin: 0;
-    font-size: 28px;
-}
+  }
 
-.welcome-card p {
-    margin-top: 10px;
-    font-size: 18px;
-}
+  .assessor-name {
+    color: var(--gold);
+    font-weight: 700;
+  }
 
-.assessor-name {
-    font-weight: bold;
-    color: #ffe082;
-}
-
-/* CARDS GRID */
-.container {
-    padding: 30px;
+  .container {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 20px;
-}
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    padding: 2rem 2.5rem 2.5rem;
+  }
 
-/* CARD */
-.card {
-    background: white;
-    padding: 25px;
-    border-radius: 12px;
-    box-shadow: 0px 2px 6px rgba(0,0,0,0.1);
-    transition: 0.2s;
-}
+  .card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.8rem 1.6rem 2.6rem;
+    transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0px 2px 6px rgba(0,0,0,0.06);
+  }
 
-.card:hover {
-    transform: scale(1.05);
-}
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--navy);
+    opacity: 0;
+    transition: opacity 0.2s;
+    border-radius: var(--radius) var(--radius) 0 0;
+  }
 
-.card a {
+  .card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 14px 36px rgba(13,31,60,0.13);
+    border-color: #c2cde0;
+  }
+
+  .card:hover::before { opacity: 1; }
+
+  .card a {
     text-decoration: none;
     color: black;
     display: block;
-}
+  }
 
-.card h3 {
-    margin: 0;
-    margin-bottom: 10px;
-}
+  .card h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--navy);
+    margin: 0 0 6px 0;
+  }
+
+  .card p {
+    font-size: 13.5px;
+    color: var(--muted);
+    font-weight: 400;
+    line-height: 1.55;
+  }
+
+  .card-arrow {
+    position: absolute;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    background: var(--off-white);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    color: var(--muted);
+    transition: background 0.2s, color 0.2s, border-color 0.2s;
+  }
+
+  .card:hover .card-arrow {
+    background: var(--navy);
+    color: #ffffff;
+    border-color: var(--navy);
+  }
+
+  @media (max-width: 1100px) {
+    .container { grid-template-columns: repeat(3, 1fr); }
+  }
+  @media (max-width: 700px) {
+    .header { padding: 0 1.2rem; }
+    .welcome-card { margin: 1rem; padding: 1.8rem 1.5rem; }
+    .welcome-card h1 { font-size: 1.7rem; }
+    .container { grid-template-columns: repeat(2, 1fr); padding: 1rem 1rem 1.5rem; }
+  }
+  @media (max-width: 480px) {
+    .container { grid-template-columns: 1fr; }
+  }
 </style>
-
 </head>
 
 <body>
 
-<!-- HEADER -->
 <div class="header">
-    <h2>ASSESSOR DASHBOARD</h2>
+    <div class="header-brand">
+        <img src="../logo_img.png" class="header-logo">
+        <div>
+            <span class="brand-text">UNM Internship Portal</span>
+        </div>
+    </div>
     <a class="logout" href="logout.php">Logout</a>
 </div>
 
-<!-- WELCOME SECTION -->
+
 <div class="welcome-card">
-    <h1>Welcome to the Assessor Dashboard</h1>
-    <p>Hello, <span class="assessor-name">
-        <?php echo $_SESSION['assessor_name']; ?>
-    </span> 👨‍🏫</p>
+    <div class="welcome-left">
+        <span class="welcome-eyebrow">Assessor Dashboard</span>
+        <h1>Welcome to the Assessor Dashboard</h1>
+        <p>Hello, <span class="assessor-name"><?php echo $_SESSION['assessor_name']; ?></span> </p>
+    </div>
 </div>
 
-<!-- DASHBOARD CARDS -->
 <div class="container">
 
     <div class="card">
         <a href="assigned_students.php">
             <h3>View Assigned Students</h3>
             <p>See all students assigned to you</p>
+            <div class="card-arrow">→</div>
         </a>
     </div>
 
@@ -125,6 +280,7 @@ body {
         <a href="enter_marks.php">
             <h3>Enter Student Marks</h3>
             <p>Assess and enter marks for students</p>
+            <div class="card-arrow">→</div>
         </a>
     </div>
 
@@ -132,6 +288,7 @@ body {
         <a href="update_marks.php">
             <h3>Update Marks</h3>
             <p>Edit previously entered marks</p>
+            <div class="card-arrow">→</div>
         </a>
     </div>
 
@@ -139,6 +296,7 @@ body {
         <a href="my_assessed_students.php">
             <h3>View My Assessed Students</h3>
             <p>View students you have assessed</p>
+            <div class="card-arrow">→</div>
         </a>
     </div>
 
@@ -146,6 +304,15 @@ body {
         <a href="view_final_results.php">
             <h3>View Final Results</h3>
             <p>Check complete assessment results</p>
+            <div class="card-arrow">→</div>
+        </a>
+    </div>
+
+    <div class="card">
+        <a href="change_password.php">
+            <h3>Change Password</h3>
+            <p>Update your account password</p>
+            <div class="card-arrow">→</div>
         </a>
     </div>
 

@@ -8,9 +8,14 @@ $msgType = "";
 $students_result = getStudents();
 $assessors_result = getAssessors();
 
+// Fetch distinct company names from Internship table
+$sql_companies = "SELECT DISTINCT company_name FROM Internship ORDER BY company_name ASC";
+$companies_result = executePreparedStatement($sql_companies, []);
+
 $selected_student_id = $_POST['student_id'] ?? "";
 $student_name = "";
 $current_assessors = [];
+$current_company = "";
 $is_locked = false;
 
 if ($selected_student_id) {
@@ -22,6 +27,13 @@ if ($selected_student_id) {
 }
 
 if ($student_name) {
+    // Get current company assigned to this student
+    $sql_company = "SELECT company_name FROM Internship WHERE student_id = ? LIMIT 1";
+    $res_company = executePreparedStatement($sql_company, [$selected_student_id]);
+    if ($res_company instanceof mysqli_result && $res_company->num_rows > 0) {
+        $current_company = $res_company->fetch_assoc()['company_name'];
+    }
+
     $res_current = getStudentAssessors($student_name);
     if ($res_current instanceof mysqli_result) {
         while ($row = $res_current->fetch_assoc()) {
@@ -29,7 +41,6 @@ if ($student_name) {
         }
     }
 
-    // Check if BOTH assessors have already submitted marks (final_result has both marks)
     $sql_lock = "SELECT assessor_1_mark, assessor_2_mark FROM final_result 
                  WHERE student_name = ? 
                  AND assessor_1_mark IS NOT NULL 
@@ -46,21 +57,67 @@ if ($student_name && isset($_POST['save_assessors'])) {
         $message = "Cannot change assessors — both assessors have already submitted marks for this student.";
         $msgType = "error";
     } else {
+        $company_updated  = false;
+        $assessors_updated = false;
+        $errors = [];
+
+        // --- Company: only act if admin picked/typed something ---
+        $company_select       = trim($_POST['company_select'] ?? "");
+        $company_new          = trim($_POST['company_new'] ?? "");
+        $company_name_to_save = ($company_select === "__new__") ? $company_new : $company_select;
+
+        if (!empty($company_name_to_save)) {
+            $sql_check_intern = "SELECT internship_id FROM Internship WHERE student_id = ? LIMIT 1";
+            $res_check_intern = executePreparedStatement($sql_check_intern, [$selected_student_id]);
+
+            if ($res_check_intern instanceof mysqli_result && $res_check_intern->num_rows > 0) {
+                $existing = $res_check_intern->fetch_assoc();
+                $sql_update_intern = "UPDATE Internship SET company_name = ? WHERE internship_id = ?";
+                executePreparedStatement($sql_update_intern, [$company_name_to_save, $existing['internship_id']]);
+            } else {
+                $sql_insert_intern = "INSERT INTO Internship (company_name, student_id) VALUES (?, ?)";
+                executePreparedStatement($sql_insert_intern, [$company_name_to_save, $selected_student_id]);
+            }
+            $current_company  = $company_name_to_save;
+            $company_updated  = true;
+        } elseif ($company_select === "__new__" && empty($company_new)) {
+            // Admin chose "Add new" but left the text field blank
+            $errors[] = "Please enter a name for the new company.";
+        }
+
+        // --- Assessors: only act if admin checked any box ---
         $assessor_ids = $_POST['assessor_ids'] ?? [];
-        if (!assignAssessorsToStudent($student_name, $assessor_ids)) {
-            $message = "Please select exactly 2 assessors.";
-            $msgType = "error";
-        } else {
-            $message = "Assessors updated successfully!";
-            $msgType = "success";
-            $current_assessors = [];
-            $res_current = getStudentAssessors($student_name);
-            if ($res_current instanceof mysqli_result) {
-                while ($row = $res_current->fetch_assoc()) {
-                    $current_assessors[] = $row['assessor_name'];
+        if (!empty($assessor_ids)) {
+            if (count($assessor_ids) !== 2) {
+                $errors[] = "Please select exactly 2 assessors.";
+            } else {
+                if (assignAssessorsToStudent($student_name, $assessor_ids)) {
+                    $assessors_updated = true;
+                    $current_assessors = [];
+                    $res_current = getStudentAssessors($student_name);
+                    if ($res_current instanceof mysqli_result) {
+                        while ($row = $res_current->fetch_assoc()) {
+                            $current_assessors[] = $row['assessor_name'];
+                        }
+                    }
+                } else {
+                    $errors[] = "Failed to update assessors.";
                 }
             }
         }
+
+        // --- Build feedback message ---
+        if (!empty($errors)) {
+            $message = implode(" ", $errors);
+            $msgType = "error";
+        } elseif ($company_updated || $assessors_updated) {
+            $parts = [];
+            if ($company_updated)  $parts[] = "Company";
+            if ($assessors_updated) $parts[] = "Assessors";
+            $message = implode(" and ", $parts) . " updated successfully!";
+            $msgType = "success";
+        }
+        // If nothing was touched, stay silent — no message shown
     }
 }
 ?>
@@ -106,7 +163,7 @@ body::before {
 .main-title { color: white; font-weight: 600; font-size: 16px; }
 
 .page { display: flex; justify-content: center; margin-top: 50px; padding-bottom: 60px; }
-.container { width: 520px; }
+.container { width: 560px; }
 
 .section-title {
     margin-bottom: 15px;
@@ -151,7 +208,7 @@ body::before {
 }
 
 .form-group select,
-.form-group input {
+.form-group input[type="text"] {
     width: 100%;
     height: 46px;
     border-radius: 10px;
@@ -165,7 +222,7 @@ body::before {
     transition: border-color 0.2s;
 }
 .form-group select:focus,
-.form-group input:focus { border-color: rgba(80,140,255,0.6); }
+.form-group input[type="text"]:focus { border-color: rgba(80,140,255,0.6); }
 
 .form-group select {
     appearance: none;
@@ -178,6 +235,14 @@ body::before {
     cursor: pointer;
 }
 .form-group select option { background: #0f1e46; color: white; }
+
+/* Two-column row for student + company */
+.row-two {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 18px;
+}
 
 .divider {
     border: none;
@@ -194,7 +259,17 @@ body::before {
     margin-bottom: 10px;
 }
 
-.assessor-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 4px; }
+/* Summary row: current company + current assessors side by side */
+.summary-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 18px;
+}
+.summary-box { }
+.summary-box .sub-label { margin-bottom: 8px; }
+
+.assessor-chips { display: flex; flex-wrap: wrap; gap: 8px; }
 .chip {
     padding: 5px 14px;
     border-radius: 20px;
@@ -203,6 +278,16 @@ body::before {
     background: rgba(80,200,120,0.2);
     color: #aaffcc;
     border: 1px solid rgba(80,200,120,0.25);
+}
+.chip-company {
+    padding: 5px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    background: rgba(80,140,255,0.2);
+    color: #b3ccff;
+    border: 1px solid rgba(80,140,255,0.25);
+    display: inline-block;
 }
 .chip-empty {
     font-size: 13px;
@@ -246,7 +331,12 @@ body::before {
 }
 .btn-submit:hover { background: rgba(70,105,180,0.7); }
 
-/* Locked state */
+.new-company-wrap {
+    margin-top: 10px;
+    display: none;
+}
+.new-company-wrap.visible { display: block; }
+
 .lock-notice {
     display: flex;
     align-items: flex-start;
@@ -256,11 +346,6 @@ body::before {
     background: rgba(255, 180, 50, 0.12);
     border: 1px solid rgba(255, 180, 50, 0.3);
     margin-top: 20px;
-}
-.lock-icon {
-    font-size: 22px;
-    flex-shrink: 0;
-    line-height: 1;
 }
 .lock-text h4 {
     color: #ffd97a;
@@ -299,45 +384,81 @@ body::before {
 
         <form method="post">
 
-            <!-- Student Selection -->
-            <div class="form-group">
-                <label>Select Student</label>
-                <select name="student_id" onchange="this.form.submit()">
-                    <option value="">— Choose a student —</option>
-                    <?php
-                    if ($students_result instanceof mysqli_result) {
-                        while ($row = $students_result->fetch_assoc()) {
-                            $sel = ($row['student_id'] == $selected_student_id) ? "selected" : "";
-                            echo "<option value='{$row['student_id']}' $sel>" . htmlspecialchars($row['student_name']) . "</option>";
+            <!-- Student + Company Selection (side by side) -->
+            <div class="row-two">
+                <div class="form-group" style="margin-bottom:0;">
+                    <label>Select Student</label>
+                    <select name="student_id" onchange="this.form.submit()">
+                        <option value="">— Choose a student —</option>
+                        <?php
+                        if ($students_result instanceof mysqli_result) {
+                            while ($row = $students_result->fetch_assoc()) {
+                                $sel = ($row['student_id'] == $selected_student_id) ? "selected" : "";
+                                echo "<option value='{$row['student_id']}' $sel>" . htmlspecialchars($row['student_name']) . "</option>";
+                            }
                         }
-                    }
-                    ?>
-                </select>
+                        ?>
+                    </select>
+                </div>
+
+                <div class="form-group" style="margin-bottom:0;">
+                    <label>Company Name</label>
+                    <select name="company_select" id="company_select" onchange="toggleNewCompany(this)">
+                        <option value="">— Select company —</option>
+                        <?php
+                        $company_list = [];
+                        if ($companies_result instanceof mysqli_result) {
+                            while ($row = $companies_result->fetch_assoc()) {
+                                $company_list[] = $row['company_name'];
+                            }
+                        }
+                        foreach ($company_list as $cname) {
+                            $sel = ($cname === $current_company) ? "selected" : "";
+                            echo "<option value='" . htmlspecialchars($cname) . "' $sel>" . htmlspecialchars($cname) . "</option>";
+                        }
+                        ?>
+                        <option value="__new__">+ Add new company…</option>
+                    </select>
+                    <div class="new-company-wrap" id="new_company_wrap">
+                        <input type="text" name="company_new" id="company_new" placeholder="Enter new company name">
+                    </div>
+                </div>
             </div>
 
             <?php if ($student_name): ?>
 
                 <hr class="divider">
 
-                <!-- Current Assessors -->
-                <div class="sub-label">Current Assessors</div>
-                <div class="assessor-chips" style="margin-bottom:18px;">
-                    <?php if (count($current_assessors) > 0): ?>
-                        <?php foreach ($current_assessors as $aname): ?>
-                            <span class="chip"><?= htmlspecialchars($aname) ?></span>
-                        <?php endforeach; ?>
-                    <?php else: ?>
-                        <span class="chip-empty">No assessors assigned yet</span>
-                    <?php endif; ?>
+                <!-- Current Summary -->
+                <div class="summary-row">
+                    <div class="summary-box">
+                        <div class="sub-label">Current Company</div>
+                        <?php if ($current_company): ?>
+                            <span class="chip-company"><?= htmlspecialchars($current_company) ?></span>
+                        <?php else: ?>
+                            <span class="chip-empty">No company assigned yet</span>
+                        <?php endif; ?>
+                    </div>
+                    <div class="summary-box">
+                        <div class="sub-label">Current Assessors</div>
+                        <div class="assessor-chips">
+                            <?php if (count($current_assessors) > 0): ?>
+                                <?php foreach ($current_assessors as $aname): ?>
+                                    <span class="chip"><?= htmlspecialchars($aname) ?></span>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <span class="chip-empty">No assessors assigned yet</span>
+                            <?php endif; ?>
+                        </div>
+                    </div>
                 </div>
 
                 <?php if ($is_locked): ?>
 
-                    <!-- lock if both assessors already marked this student -->
                     <hr class="divider">
                     <div class="lock-notice">
                         <div class="lock-text">
-                            <h4>Not allowed to Assign Assessors </h4>
+                            <h4>Not allowed to Assign Assessors</h4>
                             <p>Both assessors have already submitted their marks for this student. The assignment can no longer be changed.</p>
                         </div>
                     </div>
@@ -365,7 +486,7 @@ body::before {
                         </div>
                     </div>
 
-                    <button type="submit" name="save_assessors" class="btn-submit">Assign / Update Assessors</button>
+                    <button type="submit" name="save_assessors" class="btn-submit">Save Internship Assignment</button>
 
                 <?php endif; ?>
 
@@ -378,6 +499,26 @@ body::before {
 </div>
 
 <script>
+function toggleNewCompany(sel) {
+    const wrap = document.getElementById('new_company_wrap');
+    const input = document.getElementById('company_new');
+    if (sel.value === '__new__') {
+        wrap.classList.add('visible');
+        input.focus();
+    } else {
+        wrap.classList.remove('visible');
+        input.value = '';
+    }
+}
+
+// Init on load in case of POST-back with __new__ selected
+window.addEventListener('DOMContentLoaded', () => {
+    const sel = document.getElementById('company_select');
+    if (sel && sel.value === '__new__') {
+        document.getElementById('new_company_wrap').classList.add('visible');
+    }
+});
+
 document.querySelectorAll('input[name="assessor_ids[]"]').forEach(cb => {
     cb.addEventListener('change', function () {
         const checked = document.querySelectorAll('input[name="assessor_ids[]"]:checked');

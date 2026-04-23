@@ -36,6 +36,30 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update'])) {
 
 } elseif (isset($_GET['delete'])) {
     $deleteId = $_GET['delete'];
+
+    // Step 1: Get all internship_ids for this student
+    $sqlGetInternships = "SELECT internship_id FROM internship WHERE student_id = ?";
+    $stmtGet = $conn->prepare($sqlGetInternships);
+    $stmtGet->bind_param("i", $deleteId);
+    $stmtGet->execute();
+    $resInternships = $stmtGet->get_result();
+
+    // Step 2: Delete assessments linked to each internship
+    while ($internRow = $resInternships->fetch_assoc()) {
+        $intId = $internRow['internship_id'];
+        $sqlDelAssessment = "DELETE FROM assessment WHERE internship_id = ?";
+        $stmtDA = $conn->prepare($sqlDelAssessment);
+        $stmtDA->bind_param("i", $intId);
+        $stmtDA->execute();
+    }
+
+    // Step 3: Delete internship records for this student
+    $sqlDelInternship = "DELETE FROM internship WHERE student_id = ?";
+    $stmtDI = $conn->prepare($sqlDelInternship);
+    $stmtDI->bind_param("i", $deleteId);
+    $stmtDI->execute();
+
+    // Step 4: Now safe to delete the student
     $sql = "DELETE FROM Student WHERE student_id = ?";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("i", $deleteId);
@@ -238,7 +262,6 @@ tr:hover td { background: rgba(255,255,255,0.04); }
 }
 .form-group input:focus { border-color: rgba(80,140,255,0.6); }
 
-/* Delete success screen */
 .result-box {
     text-align: center;
     padding: 40px 20px;
@@ -277,13 +300,13 @@ tr:hover td { background: rgba(255,255,255,0.04); }
 
 <?php if (isset($deleteSuccess)): ?>
 
-    <!--DELETATION PART -->
+    <!-- DELETION PART -->
     <a href="http://localhost:8888/AdminPage/Manage_students.php" class="btn-return">&#8592; Return to Manage Students</a>
     <div class="section-title">Manage Students</div>
     <div class="card" style="max-width:480px; margin:0 auto;">
         <div class="result-box">
             <h2>Student Deleted Successfully</h2>
-            <p>The student infon has been removed from the database.</p>
+            <p>The student and all related records have been removed from the database.</p>
             <a href="http://localhost:8888/AdminPage/Manage_students.php" class="btn btn-return" style="margin-bottom:0;">&#8592; Return to Manage Students</a>
         </div>
     </div>
@@ -343,7 +366,7 @@ tr:hover td { background: rgba(255,255,255,0.04); }
                     <td><span class="badge"><?= htmlspecialchars($row['programme']) ?></span></td>
                     <td class="actions">
                         <a href="http://localhost:8888/AdminPage/Manage_students.php?id=<?= $row['student_id'] ?>" class="btn btn-edit">Edit</a>
-                        <a href="http://localhost:8888/AdminPage/Manage_students.php?delete=<?= $row['student_id'] ?>" onclick="return confirm('Delete this student?')" class="btn btn-delete">Delete</a>
+                        <a href="http://localhost:8888/AdminPage/Manage_students.php?delete=<?= $row['student_id'] ?>" onclick="return confirm('Delete this student and all related records?')" class="btn btn-delete">Delete</a>
                     </td>
                 </tr>
             <?php endwhile; else: ?>
