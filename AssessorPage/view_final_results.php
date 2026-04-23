@@ -36,7 +36,6 @@ $results = $stmt->fetch_all(MYSQLI_ASSOC);
 <head>
 <meta charset="UTF-8">
 <title>Final Results</title>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg: #f4f6fb;

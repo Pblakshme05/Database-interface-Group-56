@@ -189,7 +189,6 @@ if ($selected_id) {
 <head>
 <meta charset="UTF-8">
 <title>Enter Marks</title>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <style>
 * {
     box-sizing: border-box;
@@ -254,10 +253,14 @@ body {
     display: inline-block;
     margin-bottom: 1rem;
     opacity: 0.6;
-    transition: opacity 0.2s;
+    font-weight: 500;
+    padding: 6px 12px;
+    border-radius: 8px;
+    border: 1px solid #dde3ef;
+    background: #e8e8f8;
+    transition: opacity 0.2s, background 0.2s;
 }
-
-.back-link:hover { opacity: 1; }
+.back-link:hover { opacity: 1; background: #d8d8f0; }
 
 h2 {
     font-size: 1.3rem;
@@ -449,7 +452,7 @@ textarea:focus { border-color: #0d1f3c; }
     <div class="header-left">
         <img src="../logo_img.png" class="header-logo">
         <div class="header-text">
-            <div class="main-title">UNM Portal</div>
+            <div class="main-title">UNM Internship Portal</div>
             <div class="sub-title">Enter Marks</div>
         </div>
     </div>

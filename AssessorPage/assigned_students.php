@@ -124,6 +124,21 @@ tr:hover td {
     opacity: 0.6;
     padding: 24px;
 }
+.back-link {
+    font-size: 13px;
+    color: #0d1f3c;
+    text-decoration: none;
+    display: inline-block;
+    margin-bottom: 1rem;
+    opacity: 0.6;
+    font-weight: 500;
+    padding: 6px 12px;
+    border-radius: 8px;
+    border: 1px solid #dde3ef;
+    background: #e8e8f8;
+    transition: opacity 0.2s, background 0.2s;
+}
+.back-link:hover { opacity: 1; background: #d8d8f0; }
 </style>
 </head>
 <body>
@@ -132,7 +147,7 @@ tr:hover td {
     <div class="header-left">
         <img src="../logo_img.png" class="header-logo">
         <div class="header-text">
-            <div class="main-title">UNM Portal</div>
+            <div class="main-title">UNM Internship Portal</div>
             <div class="sub-title">Assigned Students</div>
         </div>
     </div>
@@ -140,6 +155,7 @@ tr:hover td {
 
 <div class="page">
 <div class="container">
+    <a href="../AssessorPage/AssessorPage.php" class="back-link">← Back to Dashboard</a>
     <div class="header-box">
         <h2>My Assigned Students</h2>
     </div>

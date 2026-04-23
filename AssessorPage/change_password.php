@@ -13,26 +13,16 @@ $error   = '';
 $success = '';
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    $current  = $_POST['current_password'];
     $new      = $_POST['new_password'];
     $confirm  = $_POST['confirm_password'];
 
-    // Fetch current password hash
-    $stmt = $conn->prepare("SELECT password FROM Assessor WHERE assessor_id = ?");
-    $stmt->bind_param("i", $assessor_id);
-    $stmt->execute();
-    $row = $stmt->get_result()->fetch_assoc();
-
-    if (!$row || !password_verify($current, $row['password'])) {
-        $error = "Current password is incorrect.";
-    } elseif (strlen($new) < 8) {
-        $error = "New password must be at least 8 characters.";
+    if (strlen($new) < 1) {
+        $error = "Please enter a new password.";
     } elseif ($new !== $confirm) {
         $error = "New passwords do not match.";
     } else {
-        $hashed = password_hash($new, PASSWORD_DEFAULT);
         $upd = $conn->prepare("UPDATE Assessor SET password = ? WHERE assessor_id = ?");
-        $upd->bind_param("si", $hashed, $assessor_id);
+        $upd->bind_param("si", $new, $assessor_id);
         $upd->execute();
         $success = "Password changed successfully!";
     }
@@ -43,7 +33,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 <head>
 <meta charset="UTF-8">
 <title>Change Password</title>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg: #f4f6fb;
@@ -70,7 +59,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     min-height: 100vh;
   }
 
-  /* ── Header ── */
   .top-header {
     width: 100%;
     padding: 0 2rem;
@@ -96,7 +84,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     padding: 4px 12px; border-radius: 20px;
   }
 
-  /* ── Container ── */
   .container {
     max-width: 520px;
     margin: 3rem auto;
@@ -127,22 +114,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     color: var(--ink);
   }
 
-  /* ── Card ── */
   .card {
     background: var(--card);
     border: 1px solid var(--border);
     border-radius: var(--radius);
     padding: 2rem;
     box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-  }
-
-  .card-icon {
-    width: 52px; height: 52px;
-    background: var(--accent-light);
-    border-radius: 14px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 22px;
-    margin-bottom: 1.2rem;
   }
 
   .card-title {
@@ -158,7 +135,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     margin-bottom: 1.8rem;
   }
 
-  /* ── Form fields ── */
   .field { margin-bottom: 1.2rem; }
 
   .field label {
@@ -169,9 +145,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     margin-bottom: 6px;
   }
 
-  .input-wrap {
-    position: relative;
-  }
+  .input-wrap { position: relative; }
 
   .input-wrap input {
     width: 100%;
@@ -195,21 +169,17 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     right: 12px; top: 50%;
     transform: translateY(-50%);
     background: none; border: none;
-    cursor: pointer; font-size: 16px;
+    cursor: pointer;
     color: var(--ink-soft);
-    padding: 0; line-height: 1;
+    padding: 0; line-height: 0;
+    display: flex; align-items: center;
     transition: color 0.15s;
   }
   .toggle-eye:hover { color: var(--accent); }
-
-  .match-label {
-    font-size: 11px;
-    margin-top: 4px;
-  }
+  .toggle-eye svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 
   hr { border: none; border-top: 1px solid var(--border); margin: 1.5rem 0; }
 
-  /* ── Submit button ── */
   .btn-submit {
     width: 100%;
     background: var(--accent);
@@ -226,7 +196,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
   }
   .btn-submit:hover { background: var(--accent-hover); }
 
-  /* ── Alerts ── */
   .alert {
     padding: 10px 16px;
     border-radius: 10px;
@@ -236,8 +205,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
   }
   .alert-success { background: var(--green-light); color: var(--green); }
   .alert-error   { background: #fee2e2; color: #991b1b; }
-
-
 </style>
 </head>
 <body>
@@ -265,27 +232,19 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
   <?php endif; ?>
 
   <div class="card">
-    <div class="card-icon">🔒</div>
     <div class="card-title">Update your password</div>
-    <div class="card-sub">Enter your current password, then choose a new one.</div>
+    <div class="card-sub">Choose a new password for your account.</div>
 
     <form method="POST" id="pwForm">
-
-      <div class="field">
-        <label for="current_password">Current Password</label>
-        <div class="input-wrap">
-          <input type="password" id="current_password" name="current_password" required placeholder="Enter current password">
-          <button type="button" class="toggle-eye" onclick="toggleVis('current_password', this)">👁</button>
-        </div>
-      </div>
-
-      <hr>
 
       <div class="field">
         <label for="new_password">New Password</label>
         <div class="input-wrap">
           <input type="password" id="new_password" name="new_password" required placeholder="Enter new password">
-          <button type="button" class="toggle-eye" onclick="toggleVis('new_password', this)">👁</button>
+          <button type="button" class="toggle-eye" onclick="toggleVis('new_password', this)" aria-label="Toggle visibility">
+            <svg viewBox="0 0 24 24" class="icon-eye"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            <svg viewBox="0 0 24 24" class="icon-eye-off" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+          </button>
         </div>
       </div>
 
@@ -293,9 +252,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         <label for="confirm_password">Confirm New Password</label>
         <div class="input-wrap">
           <input type="password" id="confirm_password" name="confirm_password" required placeholder="Repeat new password" oninput="checkMatch()">
-          <button type="button" class="toggle-eye" onclick="toggleVis('confirm_password', this)">👁</button>
+          <button type="button" class="toggle-eye" onclick="toggleVis('confirm_password', this)" aria-label="Toggle visibility">
+            <svg viewBox="0 0 24 24" class="icon-eye"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            <svg viewBox="0 0 24 24" class="icon-eye-off" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+          </button>
         </div>
-        <div class="strength-label" id="matchLabel"></div>
+        <div style="font-size:11px;margin-top:4px" id="matchLabel"></div>
       </div>
 
       <button type="submit" class="btn-submit">Update Password</button>
@@ -306,12 +268,16 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 <script>
 function toggleVis(id, btn) {
   const input = document.getElementById(id);
+  const eyeOn  = btn.querySelector('.icon-eye');
+  const eyeOff = btn.querySelector('.icon-eye-off');
   if (input.type === 'password') {
     input.type = 'text';
-    btn.textContent = '🙈';
+    eyeOn.style.display  = 'none';
+    eyeOff.style.display = '';
   } else {
     input.type = 'password';
-    btn.textContent = '👁';
+    eyeOn.style.display  = '';
+    eyeOff.style.display = 'none';
   }
 }
 

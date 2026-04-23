@@ -2,13 +2,11 @@
 session_start();
 include '../configdb.php';
 
-
 if (!isset($_SESSION['admin_id'])) {
     header("Location: ../loginpage.php");
     exit();
 }
 
-// Live counts
 $student_count  = $conn->query("SELECT COUNT(*) FROM Student")->fetch_row()[0] ?? 0;
 $assessor_count = $conn->query("SELECT COUNT(*) FROM Assessor")->fetch_row()[0] ?? 0;
 $result_count   = $conn->query("SELECT COUNT(*) FROM final_result WHERE final_avg_mark IS NOT NULL")->fetch_row()[0] ?? 0;
@@ -39,7 +37,6 @@ $result_count   = $conn->query("SELECT COUNT(*) FROM final_result WHERE final_av
     min-height: 100vh;
   }
 
-  /* ── HEADER ── */
   .header {
     background: var(--navy);
     height: 68px;
@@ -98,10 +95,10 @@ $result_count   = $conn->query("SELECT COUNT(*) FROM final_result WHERE final_av
     border-radius: 10px;
     text-decoration: none;
     transition: background 0.15s;
+    cursor: pointer;
   }
   .logout:hover { background: rgba(239,68,68,0.22); }
 
-  /* ── WELCOME CARD ── */
   .welcome-card {
     background: var(--navy);
     margin: 2rem 2.5rem 0;
@@ -167,7 +164,6 @@ $result_count   = $conn->query("SELECT COUNT(*) FROM final_result WHERE final_av
     font-weight: 700;
   }
 
-  /* ── STATS ── */
   .hero-stats {
     display: flex;
     gap: 1.2rem;
@@ -202,7 +198,6 @@ $result_count   = $conn->query("SELECT COUNT(*) FROM final_result WHERE final_av
     display: block;
   }
 
-  /* ── CONTAINER / GRID ── */
   .container {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -210,7 +205,6 @@ $result_count   = $conn->query("SELECT COUNT(*) FROM final_result WHERE final_av
     padding: 2rem 2.5rem 2.5rem;
   }
 
-  /* ── CARD ── */
   .card {
     background: var(--card-bg);
     border: 1px solid var(--border);
@@ -285,7 +279,6 @@ $result_count   = $conn->query("SELECT COUNT(*) FROM final_result WHERE final_av
     border-color: var(--navy);
   }
 
-  /* ── RESPONSIVE ── */
   @media (max-width: 1100px) {
     .container { grid-template-columns: repeat(3, 1fr); }
     .hero-stats { display: none; }
@@ -304,7 +297,6 @@ $result_count   = $conn->query("SELECT COUNT(*) FROM final_result WHERE final_av
 
 <body>
 
-<!-- HEADER -->
 <div class="header">
     <div class="header-brand">
         <img src="../logo_img.png" alt="Logo">
@@ -312,10 +304,9 @@ $result_count   = $conn->query("SELECT COUNT(*) FROM final_result WHERE final_av
             <span class="brand-text">UNM Internship Portal</span>
         </div>
     </div>
-    <a class="logout" href="logout.php">Logout</a>
+    <a class="logout" onclick="confirmLogout()">Logout</a>
 </div>
 
-<!-- WELCOME SECTION -->
 <div class="welcome-card">
     <div class="welcome-left">
         <span class="welcome-eyebrow">Admin Dashboard</span>
@@ -338,7 +329,6 @@ $result_count   = $conn->query("SELECT COUNT(*) FROM final_result WHERE final_av
     </div>
 </div>
 
-<!-- DASHBOARD CARDS -->
 <div class="container">
 
     <div class="card">
@@ -406,6 +396,14 @@ $result_count   = $conn->query("SELECT COUNT(*) FROM final_result WHERE final_av
     </div>
 
 </div>
+
+<script>
+function confirmLogout() {
+    if (confirm("Are you sure you want to logout?")) {
+        window.location.href = "../loginpage.php";
+    }
+}
+</script>
 
 </body>
 </html>

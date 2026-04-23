@@ -81,6 +81,7 @@ if (!isset($_SESSION['assessor_id'])) {
     border-radius: 10px;
     text-decoration: none;
     transition: background 0.15s;
+    cursor: pointer;
   }
   .logout:hover { background: rgba(239,68,68,0.22); }
 
@@ -254,9 +255,8 @@ if (!isset($_SESSION['assessor_id'])) {
             <span class="brand-text">UNM Internship Portal</span>
         </div>
     </div>
-    <a class="logout" href="logout.php">Logout</a>
+    <a class="logout" onclick="confirmLogout()">Logout</a>
 </div>
-
 
 <div class="welcome-card">
     <div class="welcome-left">
@@ -317,6 +317,14 @@ if (!isset($_SESSION['assessor_id'])) {
     </div>
 
 </div>
+
+<script>
+function confirmLogout() {
+    if (confirm("Are you sure you want to logout?")) {
+        window.location.href = "../loginpage.php";
+    }
+}
+</script>
 
 </body>
 </html>

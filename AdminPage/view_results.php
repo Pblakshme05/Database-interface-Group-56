@@ -45,20 +45,22 @@ $results = $stmt->fetch_all(MYSQLI_ASSOC);
 <head>
 <meta charset="UTF-8">
 <title>Final Results</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #f0ede8;
+    --bg: #f4f6fb;
     --card: #ffffff;
-    --ink: #1a1a1a;
-    --ink-soft: #666;
-    --accent: #2d2d6b;
+    --ink: #0d1f3c;
+    --ink-soft: #4a5f7a;
+    --accent: #0d1f3c;
+    --accent-hover: #1e3560;
     --accent-light: #e8e8f8;
     --gold: #c8a84b;
     --gold-light: #fdf6e3;
-    --border: #e0dbd2;
-    --green: #2d6b4a;
-    --green-light: #e8f5ee;
-    --pending: #92660a;
+    --border: #dde3ef;
+    --green: #166534;
+    --green-light: #dcfce7;
+    --pending: #854d0e;
     --pending-bg: #fef9c3;
     --radius: 14px;
   }
@@ -66,70 +68,64 @@ $results = $stmt->fetch_all(MYSQLI_ASSOC);
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
   body {
-    font-family: 'DM Sans', sans-serif;
+    font-family: 'Poppins', sans-serif;
     background: var(--bg);
     color: var(--ink);
     min-height: 100vh;
   }
 
   .topbar {
-    background: var(--card);
-    border-bottom: 1px solid var(--border);
+    background: var(--accent);
+    border-bottom: 1px solid rgba(255,255,255,0.1);
     padding: 0 2rem;
     height: 60px;
     display: flex; align-items: center; justify-content: space-between;
     position: sticky; top: 0; z-index: 10;
   }
-  .topbar-left  { display: flex; align-items: center; gap: 1rem; }
+  .topbar-left { display: flex; align-items: center; gap: 1rem; }
   .topbar-right { display: flex; align-items: center; gap: 0.75rem; }
 
   .back-btn {
     display: flex; align-items: center; gap: 6px;
-    font-size: 13px; color: var(--accent); text-decoration: none;
+    font-size: 13px; color: #fff; text-decoration: none;
     font-weight: 500; padding: 6px 12px; border-radius: 8px;
-    border: 1px solid var(--accent-light); background: var(--accent-light);
+    border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.1);
     transition: background 0.15s;
   }
-  .back-btn:hover { background: #d8d8f0; }
-
-  .logout-btn {
-    display: flex; align-items: center; gap: 6px;
-    font-size: 13px; color: #991b1b; text-decoration: none;
-    font-weight: 500; padding: 6px 14px; border-radius: 8px;
-    border: 1px solid #fecaca; background: #fee2e2;
-    transition: background 0.15s; cursor: pointer;
-  }
-  .logout-btn:hover { background: #fecaca; }
+  .back-btn:hover { background: rgba(255,255,255,0.2); }
 
   .page-title {
-    font-family: 'Syne', sans-serif;
-    font-size: 15px; font-weight: 700; color: var(--ink);
+    font-family: 'Poppins', sans-serif;
+    font-size: 15px; font-weight: 600; color: #fff;
   }
   .assessor-pill {
     font-size: 12px; font-weight: 500;
     background: var(--gold-light); color: var(--gold);
     border: 1px solid #e8d99a;
     padding: 4px 12px; border-radius: 20px;
+    font-family: 'Poppins', sans-serif;
   }
 
   .main { max-width: 1100px; margin: 0 auto; padding: 2.5rem 1.5rem; }
 
   .section-header { margin-bottom: 2rem; }
   .section-header h1 {
-    font-family: 'Syne', sans-serif;
-    font-size: 1.9rem; font-weight: 800; line-height: 1.1;
+    font-family: 'Poppins', sans-serif;
+    font-size: 1.3rem; font-weight: 700; color: var(--ink);
   }
-  .section-header p { font-size: 14px; color: var(--ink-soft); margin-top: 6px; }
+  .section-header p { font-size: 13px; color: var(--ink-soft); margin-top: 4px; }
 
   .stats-bar { display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap; }
   .stat-chip {
     background: var(--card); border: 1px solid var(--border);
     border-radius: 10px; padding: 12px 20px;
     display: flex; align-items: center; gap: 10px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.04);
   }
   .stat-num {
-    font-family: 'Syne', sans-serif;
-    font-size: 1.5rem; font-weight: 800; color: var(--accent);
+    font-family: 'Poppins', sans-serif;
+    font-size: 1.5rem; font-weight: 700; color: var(--accent);
   }
   .stat-label { font-size: 12px; color: var(--ink-soft); line-height: 1.3; }
 
@@ -138,19 +134,26 @@ $results = $stmt->fetch_all(MYSQLI_ASSOC);
     border: 1px solid var(--border);
     border-radius: var(--radius);
     overflow: hidden;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.04);
   }
 
   table { width: 100%; border-collapse: collapse; }
+
   thead tr { background: var(--accent); color: #fff; }
   thead th {
-    font-family: 'Syne', sans-serif;
-    font-size: 11px; font-weight: 700;
+    font-family: 'Poppins', sans-serif;
+    font-size: 11px; font-weight: 600;
     text-transform: uppercase; letter-spacing: 0.08em;
     padding: 14px 18px; text-align: left;
   }
-  tbody tr { border-bottom: 1px solid var(--border); transition: background 0.12s; }
+
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background 0.12s;
+  }
   tbody tr:last-child { border-bottom: none; }
-  tbody tr:hover { background: #fafaf8; }
+  tbody tr:hover { background: #f8f9fc; }
+
   td { padding: 14px 18px; font-size: 14px; vertical-align: middle; }
 
   .stu-cell { display: flex; align-items: center; gap: 12px; }
@@ -158,10 +161,10 @@ $results = $stmt->fetch_all(MYSQLI_ASSOC);
     width: 36px; height: 36px; border-radius: 50%;
     background: var(--accent-light); flex-shrink: 0;
     display: flex; align-items: center; justify-content: center;
-    font-family: 'Syne', sans-serif;
+    font-family: 'Poppins', sans-serif;
     font-size: 11px; font-weight: 700; color: var(--accent);
   }
-  .stu-name { font-weight: 600; font-size: 14px; }
+  .stu-name { font-weight: 600; font-size: 14px; color: var(--ink); }
   .stu-prog { font-size: 11px; color: var(--ink-soft); }
   .company-tag {
     font-size: 11px; color: var(--gold);
@@ -171,34 +174,75 @@ $results = $stmt->fetch_all(MYSQLI_ASSOC);
   }
 
   .mark-cell { text-align: center; }
-  .mark-val { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; color: var(--accent); }
+  .mark-val {
+    font-family: 'Poppins', sans-serif;
+    font-size: 15px; font-weight: 700; color: var(--accent);
+  }
   .mark-name { font-size: 11px; color: var(--ink-soft); margin-top: 2px; }
   .mark-pending { font-size: 13px; color: #bbb; font-style: italic; }
 
   .final-cell { text-align: center; }
-  .final-score { font-family: 'Syne', sans-serif; font-size: 1.3rem; font-weight: 800; }
+  .final-score {
+    font-family: 'Poppins', sans-serif;
+    font-size: 1.3rem; font-weight: 700;
+  }
   .final-pending {
-    font-size: 12px; color: var(--pending); background: var(--pending-bg);
-    padding: 4px 10px; border-radius: 20px; display: inline-block; font-weight: 500;
+    font-size: 12px; color: var(--pending);
+    background: var(--pending-bg);
+    padding: 4px 10px; border-radius: 20px;
+    display: inline-block; font-weight: 500;
   }
 
-  .grade-badge { font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 20px; display: inline-block; margin-top: 4px; }
+  .grade-badge {
+    font-size: 11px; font-weight: 600;
+    padding: 3px 9px; border-radius: 20px;
+    display: inline-block; margin-top: 4px;
+    font-family: 'Poppins', sans-serif;
+  }
   .grade-A { background: var(--green-light); color: var(--green); }
   .grade-B { background: #e8f0fe; color: #1a56db; }
   .grade-C { background: var(--gold-light); color: #92660a; }
   .grade-D { background: #fff3e0; color: #b45309; }
   .grade-F { background: #fee2e2; color: #991b1b; }
 
-  .status-both  { font-size: 11px; font-weight: 600; background: var(--green-light); color: var(--green); padding: 3px 9px; border-radius: 20px; }
-  .status-one   { font-size: 11px; font-weight: 600; background: var(--pending-bg); color: var(--pending); padding: 3px 9px; border-radius: 20px; }
-  .status-none  { font-size: 11px; font-weight: 600; background: #fee2e2; color: #991b1b; padding: 3px 9px; border-radius: 20px; }
+  .status-both {
+    font-size: 11px; font-weight: 600;
+    background: var(--green-light); color: var(--green);
+    padding: 3px 9px; border-radius: 20px;
+    font-family: 'Poppins', sans-serif;
+  }
+  .status-one {
+    font-size: 11px; font-weight: 600;
+    background: var(--pending-bg); color: var(--pending);
+    padding: 3px 9px; border-radius: 20px;
+    font-family: 'Poppins', sans-serif;
+  }
+  .status-none {
+    font-size: 11px; font-weight: 600;
+    background: #fee2e2; color: #991b1b;
+    padding: 3px 9px; border-radius: 20px;
+    font-family: 'Poppins', sans-serif;
+  }
 
-  .mini-bar-bg  { height: 4px; background: var(--border); border-radius: 99px; overflow: hidden; margin-top: 4px; width: 80px; }
-  .mini-bar-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--accent), #6c63ff); }
+  .mini-bar-bg {
+    height: 4px; background: var(--border);
+    border-radius: 99px; overflow: hidden; margin-top: 4px; width: 80px;
+  }
+  .mini-bar-fill {
+    height: 100%; border-radius: 99px;
+    background: linear-gradient(90deg, var(--accent), #3b5bdb);
+  }
 
-  .empty-state { text-align: center; padding: 4rem 2rem; background: var(--card); border-radius: var(--radius); border: 1px dashed var(--border); }
+  .empty-state {
+    text-align: center; padding: 4rem 2rem;
+    background: var(--card); border-radius: var(--radius);
+    border: 1px dashed var(--border);
+  }
   .empty-icon { font-size: 2.5rem; margin-bottom: 1rem; }
-  .empty-state h3 { font-family: 'Syne', sans-serif; font-size: 1.1rem; font-weight: 700; margin-bottom: 6px; }
+  .empty-state h3 {
+    font-family: 'Poppins', sans-serif;
+    font-size: 1.1rem; font-weight: 700; margin-bottom: 6px; color: var(--ink);
+  }
   .empty-state p { font-size: 13px; color: var(--ink-soft); }
 
   @media (max-width: 700px) {
@@ -220,7 +264,6 @@ $results = $stmt->fetch_all(MYSQLI_ASSOC);
   </div>
   <div class="topbar-right">
     <span class="assessor-pill"><?= htmlspecialchars($user_name) ?></span>
-    </a>
   </div>
 </div>
 
@@ -243,11 +286,11 @@ $results = $stmt->fetch_all(MYSQLI_ASSOC);
       <div class="stat-label">Total<br>Students</div>
     </div>
     <div class="stat-chip">
-      <div class="stat-num" style="color:var(--green)"><?= $completed ?></div>
+      <div class="stat-num" style="color:#166534"><?= $completed ?></div>
       <div class="stat-label">Fully<br>Assessed</div>
     </div>
     <div class="stat-chip">
-      <div class="stat-num" style="color:var(--pending)"><?= $pending ?></div>
+      <div class="stat-num" style="color:#854d0e"><?= $pending ?></div>
       <div class="stat-label">Awaiting<br>2nd Assessor</div>
     </div>
   </div>

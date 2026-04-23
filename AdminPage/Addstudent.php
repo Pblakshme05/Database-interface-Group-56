@@ -1,22 +1,25 @@
-
 <?php
+session_start();
 include '../configdb.php';
 include '../function.php';
- 
+
+if (!isset($_SESSION['admin_id'])) {
+    header("Location: ../loginpage.php");
+    exit();
+}
+
 $message = "";
 $messageType = "";
- 
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
- 
-    $name = trim($_POST['name'] ?? '');
+    $name      = trim($_POST['name'] ?? '');
     $programme = trim($_POST['programme'] ?? '');
- 
+
     if (empty($name) || empty($programme)) {
         $message = "Name and programme are required.";
         $messageType = "error";
     } else {
         $result = createStudent($name, $programme);
- 
         if ($result) {
             $message = "Student info added successfully.";
             $messageType = "success";
@@ -27,277 +30,170 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 }
 ?>
- 
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+<meta charset="UTF-8">
 <title>Add Student</title>
- 
- 
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-}
- 
-body {
+  :root {
+    --bg: #f4f6fb;
+    --card: #ffffff;
+    --ink: #0d1f3c;
+    --ink-soft: #4a5f7a;
+    --accent: #0d1f3c;
+    --accent-hover: #1e3560;
+    --accent-light: #e8e8f8;
+    --gold: #c8a84b;
+    --gold-light: #fdf6e3;
+    --border: #dde3ef;
+    --green: #166534;
+    --green-light: #dcfce7;
+    --radius: 14px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
     font-family: 'Poppins', sans-serif;
+    background: var(--bg);
+    color: var(--ink);
     min-height: 100vh;
-    background-image: url('bg_image.png');
-    background-size: cover;
-    background-position: center 20%;
-    background-repeat: no-repeat;
-    background-attachment: fixed;
-}
- 
-body::before {
-    content: "";
-    position: fixed;
-    inset: 0;
-    background: rgba(10, 20, 60, 0.55);
-    z-index: -1;
-}
- 
-.top-header {
-    width: 100%;
-    padding: 15px 40px;
-    background: rgba(15, 30, 70, 0.85);
+  }
+
+  .topbar {
+    background: var(--accent);
     border-bottom: 1px solid rgba(255,255,255,0.1);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
-}
- 
-.header-left {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
- 
-.header-logo {
-    width: 40px;
-    height: 40px;
-    border-radius: 10px;
-    object-fit: cover;
-}
- 
-.header-text {
-    display: flex;
-    flex-direction: column;
-}
- 
-.main-title {
-    color: white;
-    font-weight: 600;
-    font-size: 16px;
-    line-height: 1;
-}
- 
-.sub-title {
-    color: rgba(255,255,255,0.6);
-    font-size: 12px;
-    margin-top: 2px;
-}
- 
-.page {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-top: 60px;
-}
- 
-.container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
- 
-.header {
-    width: 420px;
-    margin-bottom: 15px;
-    padding: 15px 20px;
-    border-radius: 16px;
-    background: rgba(25, 45, 95, 0.52);
-    backdrop-filter: blur(22px);
-    border: 1px solid rgba(255,255,255,0.13);
-    color: white;
-    font-weight: 600;
-    text-align: center;
-}
- 
-.card {
-    width: 420px;
-    background: rgba(25, 45, 95, 0.52);
-    backdrop-filter: blur(22px);
-    border-radius: 24px;
-    padding: 40px;
-    border: 1px solid rgba(255,255,255,0.13);
-}
- 
-.logo-wrap {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 15px;
-}
- 
-.logo {
-    width: 80px;
-    height: 80px;
-    border-radius: 16px;
-    object-fit: cover;
-    border: 2px solid rgba(255,255,255,0.2);
-}
- 
-.uni-name {
-    text-align: center;
-    color: white;
-    font-weight: 700;
-    font-size: 16px;
-}
- 
-.uni-sub {
-    text-align: center;
-    color: rgba(255,255,255,0.6);
-    font-size: 13px;
-    margin-bottom: 20px;
-}
- 
-.separator {
-    height: 1px;
-    background: rgba(255,255,255,0.15);
-    margin: 20px 0;
-}
- 
-.title {
-    color: white;
-    font-size: 18px;
-    font-weight: 600;
-    margin-bottom: 20px;
-    text-align: left;
-}
- 
-.field {
-    margin-bottom: 18px;
-}
- 
-.field label {
-    display: block;
-    color: rgba(255,255,255,0.85);
-    font-size: 13px;
-    margin-bottom: 6px;
-}
- 
-.field input {
-    width: 100%;
-    height: 45px;
-    border-radius: 10px;
-    border: 1px solid rgba(255,255,255,0.18);
-    padding: 0 12px;
-    background: rgba(15, 30, 70, 0.65);
-    color: white;
-    font-family: 'Poppins', sans-serif;
-    font-size: 14px;
-    outline: none;
-    transition: border-color 0.2s;
-}
- 
-.field input:focus {
-    border-color: rgba(100, 150, 255, 0.5);
-}
- 
-.field input::placeholder {
-    color: rgba(255,255,255,0.4);
-}
- 
-.btn {
-    width: 100%;
-    height: 48px;
-    border-radius: 10px;
+    padding: 0 2rem;
+    height: 60px;
+    display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; z-index: 10;
+  }
+  .topbar-left { display: flex; align-items: center; gap: 1rem; }
+  .back-btn {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 13px; color: #fff; text-decoration: none;
+    font-weight: 500; padding: 6px 12px; border-radius: 8px;
     border: 1px solid rgba(255,255,255,0.2);
-    background: rgba(50, 80, 150, 0.55);
-    color: white;
+    background: rgba(255,255,255,0.1);
+    transition: background 0.15s;
+  }
+  .back-btn:hover { background: rgba(255,255,255,0.2); }
+  .page-title { font-size: 15px; font-weight: 600; color: #fff; }
+  .admin-pill {
+    font-size: 12px; font-weight: 500;
+    background: var(--gold-light); color: var(--gold);
+    border: 1px solid #e8d99a;
+    padding: 4px 12px; border-radius: 20px;
+  }
+
+  .main {
+    max-width: 520px;
+    margin: 3rem auto;
+    padding: 0 20px 40px;
+  }
+
+  .section-header { margin-bottom: 1.5rem; }
+  .section-header h1 { font-size: 1.3rem; font-weight: 700; color: var(--ink); }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 2rem;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  }
+
+  .card-title { font-size: 16px; font-weight: 700; color: var(--ink); margin-bottom: 4px; }
+  .card-sub { font-size: 13px; color: var(--ink-soft); margin-bottom: 1.8rem; }
+
+  .field { margin-bottom: 1.2rem; }
+  .field label {
+    display: block; font-size: 13px; font-weight: 600;
+    color: var(--ink); margin-bottom: 6px;
+  }
+  .field input {
+    width: 100%;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 14px;
+    font-family: 'Poppins', sans-serif;
+    color: var(--ink);
+    background: var(--bg);
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .field input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(13,31,60,0.08);
+  }
+  .field input::placeholder { color: #aab; }
+
+  .btn-submit {
+    width: 100%;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    padding: 12px;
+    border-radius: 10px;
+    font-size: 15px;
     font-family: 'Poppins', sans-serif;
     font-weight: 600;
-    font-size: 14px;
     cursor: pointer;
-    transition: 0.2s;
-}
- 
-.btn:hover {
-    background: rgba(70, 105, 180, 0.7);
-}
- 
-.message {
-    width: 100%;
-    padding: 10px 14px;
-    border-radius: 10px;
-    font-size: 13px;
-    margin-bottom: 18px;
-    text-align: center;
-}
- 
-.message.success {
-    background: rgba(50, 180, 100, 0.25);
-    border: 1px solid rgba(50, 200, 100, 0.3);
-    color: #7fffa0;
-}
- 
-.message.error {
-    background: rgba(220, 60, 60, 0.25);
-    border: 1px solid rgba(220, 80, 80, 0.3);
-    color: #ffaaaa;
-}
+    transition: background 0.2s;
+    margin-top: 0.5rem;
+  }
+  .btn-submit:hover { background: var(--accent-hover); }
+
+  .alert {
+    padding: 10px 16px; border-radius: 10px;
+    font-size: 13px; margin-bottom: 1.2rem;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .alert-success { background: var(--green-light); color: var(--green); }
+  .alert-error   { background: #fee2e2; color: #991b1b; }
 </style>
- 
 </head>
- 
 <body>
- 
-<div class="top-header">
-    <div class="header-left">
-        <img src="../logo_img.png" class="header-logo">
-        <div class="header-text">
-            <div class="main-title">UNM Internship Portal</div>
-        </div>
-    </div>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <a href="../AdminPage/AdminPage.php" class="back-btn">← Dashboard</a>
+    <span class="page-title">Add Student</span>
+  </div>
+  <span class="admin-pill"><?= htmlspecialchars($_SESSION['admin_name']) ?></span>
 </div>
- 
-<div class="page">
-<div class="container">
- 
-    <div class="header">
-        <h2>Add Student</h2>
+
+<div class="main">
+  <div class="section-header">
+    <h1>Add Student</h1>
+  </div>
+
+  <?php if (!empty($message)): ?>
+    <div class="alert <?= $messageType === 'success' ? 'alert-success' : 'alert-error' ?>">
+      <?= $messageType === 'success' ? '✓' : '⚠' ?> <?= htmlspecialchars($message) ?>
     </div>
- 
-    <div class="card">
- 
- 
-        <div class="title">Register a new student</div>
- 
-        <?php if (!empty($message)) { ?>
-            <div class="message <?php echo $messageType; ?>"><?php echo htmlspecialchars($message); ?></div>
-        <?php } ?>
- 
-        <form method="post">
- 
-            <div class="field">
-                <label>Student Name</label>
-                <input type="text" name="name" id="name" placeholder="Enter student name" value="<?php echo htmlspecialchars($_POST['name'] ?? ''); ?>">
-            </div>
- 
-            <div class="field">
-                <label>Programme</label>
-                <input type="text" name="programme" id="programme" placeholder="Enter programme" value="<?php echo htmlspecialchars($_POST['programme'] ?? ''); ?>">
-            </div>
- 
-            <button type="submit" name="submit" class="btn">Add Student</button>
- 
-        </form>
- 
-    </div>
- 
+  <?php endif; ?>
+
+  <div class="card">
+    <div class="card-title">Register a new student</div>
+    <div class="card-sub">Fill in the details below to add a new student.</div>
+
+    <form method="post">
+      <div class="field">
+        <label>Student Name</label>
+        <input type="text" name="name" placeholder="Enter student name" value="<?= htmlspecialchars($_POST['name'] ?? '') ?>">
+      </div>
+      <div class="field">
+        <label>Programme</label>
+        <input type="text" name="programme" placeholder="Enter programme" value="<?= htmlspecialchars($_POST['programme'] ?? '') ?>">
+      </div>
+      <button type="submit" name="submit" class="btn-submit">Add Student</button>
+    </form>
+  </div>
 </div>
-</div>
- 
+
 </body>
 </html>
- 
