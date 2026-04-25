@@ -31,7 +31,7 @@ function adminLogin($email, $password) {
     return $result;
 }
 
-# 🔥 STUDENT FUNCTIONS
+# STUDENT FUNCTIONS
 function createStudent($name, $programme) {
     $sql = "INSERT INTO Student (student_name, programme) VALUES (?, ?)";
     return executePreparedStatement($sql, [$name, $programme]);
